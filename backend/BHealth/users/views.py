@@ -125,6 +125,7 @@ class AvatarView(GenericViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, UserPermission]
 
+
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
         avatar = request.data.get('avatar')
