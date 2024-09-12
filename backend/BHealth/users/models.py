@@ -13,7 +13,15 @@ class User(AbstractUser):
     avatar = models.ImageField(verbose_name='头像', blank=True, null=True, upload_to='avatar')
     is_delete = models.BooleanField(default=False, verbose_name='逻辑删除')
     introduction = models.TextField(verbose_name='个人简介', blank=True, null=True)
-
+    # type = models.CharField(max_length=10, verbose_name='用户类型', default='normal')
+    Types = (
+        ('患者', '患者'),
+        ('医生', '医生'),
+        ('药库管理者', '药库管理者'),
+    )
+    type = models.CharField(max_length=20, choices=Types, default='患者')
+    workSchedule = models.JSONField(verbose_name='工作时间表', blank=True, null=True)
+    diagnosis = models.JSONField(verbose_name='诊断记录', blank=True, null=True)
 
     class Meta:
         db_table = 'users'
@@ -26,7 +34,7 @@ class User(AbstractUser):
 class EmailVerifyRecord(models.Model):
     # 验证码
     code = models.CharField(max_length=20, verbose_name="验证码")
-    email = models.EmailField(max_length=50, verbose_name="邮箱",default="894618229@qq.com")
+    email = models.EmailField(max_length=50, verbose_name="邮箱", default="894618229@qq.com")
     # 包含注册验证和找回验证
     send_type = models.CharField(verbose_name="验证码类型", max_length=10,
                                  choices=(("register", "注册"), ("forget", "找回密码")))
@@ -38,3 +46,4 @@ class EmailVerifyRecord(models.Model):
 
     def __unicode__(self):
         return '{0}({1})'.format(self.code, self.email)
+

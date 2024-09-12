@@ -6,11 +6,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from permisson import UserPermission
+from permisson import UserPermission, NotPatientPermission
 from users import models
 from users.models import User, EmailVerifyRecord
 from users.send_email import send_code_email
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, DoctorSerializer
 import os
 import random
 import re
@@ -37,6 +37,7 @@ class RigisterView(APIView):
         password = request.data.get('password')
         passwordConfirm = request.data.get('passwordconfirm')
         code = request.data.get('code')
+        type = request.data.get('type')
         try:
             tmp = EmailVerifyRecord.objects.get(email=email)
         except MultipleObjectsReturned:
@@ -63,11 +64,12 @@ class RigisterView(APIView):
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
         tmp.delete()
-        user = User.objects.create_user(username=username, email=email, password=password)
+        user = User.objects.create_user(username=username, email=email, password=password, type=type)
         result = {
             "username": user.username,
             "email": user.email,
             "id": user.id,
+            "type": user.type
         }
         return Response(result, status=status.HTTP_201_CREATED)
 
@@ -113,6 +115,8 @@ class LoginView(TokenObtainPairView):
         result['id'] = serializer.user.id
         result['email'] = serializer.user.email
         result['token'] = result.pop('access')
+        result['refresh'] = result.pop('refresh')
+        result['type'] = serializer.user.type
         return Response(result, status=status.HTTP_200_OK)
 
 
@@ -135,3 +139,48 @@ class AvatarView(GenericViewSet):
         serializer.save()
 
         return Response({"url": serializer.data['avatar']}, status=status.HTTP_200_OK)
+
+
+class DoctorView(GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = DoctorSerializer
+    permission_classes = [IsAuthenticated, UserPermission]
+
+    def get(self, request, *args, **kwargs):
+        doctors = User.objects.filter(type='医生')
+        serializer = self.get_serializer(doctors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_single_doctor(self, request, *args, **kwargs):
+        doctor = self.get_object()
+        serializer = self.get_serializer(doctor)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
+    def post(self, request, *args, **kwargs):
+        doctor = self.get_object()
+        workSchedule = request.data.get('workSchedule')
+        introduction = request.data.get('introduction')
+        if doctor.type != '医生':
+            return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
+        # 改变医生的时间表
+        if workSchedule:
+            doctor.workSchedule = workSchedule
+        if introduction:
+            doctor.introduction = introduction
+        doctor.save()
+        return Response(status=status.HTTP_200_OK)
+
+    def write_diagnosis(self, request, *args, **kwargs):
+        doctor = self.request.user
+        patient = self.get_object()
+        diagnosis = request.data.get('diagnosis')
+        if doctor.type != '医生' and not doctor.is_superuser:
+            return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
+        if not diagnosis:
+            return Response({"error": "诊断记录不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+
+        patient.diagnosis = diagnosis
+        patient.save()
+        return Response(status=status.HTTP_200_OK)
+
