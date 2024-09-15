@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
-from users.views import SendEmailRegisterCodeView, RigisterView, LoginView, AvatarView
+from users.views import SendEmailRegisterCodeView, RigisterView, LoginView, AvatarView,DoctorView
 
 urlpatterns = [
     path('mail/', SendEmailRegisterCodeView.as_view(), name='send_email_register_code'),
@@ -27,4 +27,8 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("token/verify/", TokenVerifyView.as_view(), name='token_verify'),
     path("<int:pk>/avatar/upload/", AvatarView.as_view({'post': 'avatar_upload'}), name='头像上传'),
+    path('doctors/', DoctorView.as_view({'get': 'get'}), name='doctors'),
+    path('doctors/<int:pk>', DoctorView.as_view({'get': 'get_single_doctor'}), name='doctor'),
+    path('doctors/<int:pk>', DoctorView.as_view({'post': 'post'}), name='doctor'),
+    path('diagnosis/<int:pk>', DoctorView.as_view({'put': 'write_diagnosis'}), name='diagnosis'),
 ]
