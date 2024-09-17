@@ -38,6 +38,7 @@ class RigisterView(APIView):
         passwordConfirm = request.data.get('passwordconfirm')
         code = request.data.get('code')
         type = request.data.get('type')
+        category = request.data.get('category')
         try:
             tmp = EmailVerifyRecord.objects.get(email=email)
         except MultipleObjectsReturned:
@@ -64,7 +65,11 @@ class RigisterView(APIView):
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
         tmp.delete()
-        user = User.objects.create_user(username=username, email=email, password=password, type=type)
+        if category:
+            user = User.objects.create_user(username=username, email=email, password=password, type=type,
+                                            category=category)
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password, type=type)
         result = {
             "username": user.username,
             "email": user.email,
@@ -125,7 +130,6 @@ class AvatarView(GenericViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, UserPermission]
 
-
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
         avatar = request.data.get('avatar')
@@ -176,12 +180,54 @@ class DoctorView(GenericViewSet):
         doctor = self.request.user
         patient = self.get_object()
         diagnosis = request.data.get('diagnosis')
-        if doctor.type != '医生' and not doctor.is_superuser:
-            return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
         if not diagnosis:
             return Response({"error": "诊断记录不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+        diagnosis_con = models.Diagnosis.objects.create(doctor=doctor, content=diagnosis)
 
-        patient.diagnosis = diagnosis
+        patient.diagnosis.add(diagnosis_con)
         patient.save()
         return Response(status=status.HTTP_200_OK)
 
+    def get_special_doctors(self, request, *args, **kwargs):
+        name = request.GET.get('name')
+        category = request.GET.get('category')
+        content = request.GET.get('content')
+        doctors = User.objects.filter(type='医生')
+        if name:
+            doctors = doctors.filter(username=name)
+        if category:
+            doctors = doctors.filter(category=category)
+        if content:
+            doctors = doctors.filter(introduction__contains=content)
+        serializer = self.get_serializer(doctors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PatientView(GenericViewSet):
+    queryset = User.objects.all()
+
+    # 分页
+    @action(methods=['get'], detail=True, permissions=[NotPatientPermission])
+    def get_patients(self, request, *args, **kwargs):
+        patients = User.objects.filter(type='患者')
+        page = self.paginate_queryset(patients)
+        if page is not None:
+            serializer = UserSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = UserSerializer(patients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_single_patient(self, request, *args, **kwargs):
+        patient = self.get_object()
+        serializer = UserSerializer(patient)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
+    def put_diagnosis(self, request, *args, **kwargs):
+        patient = self.get_object()
+        diagnosis = request.data.get('diagnosis')
+        if not diagnosis:
+            return Response({"error": "诊断记录不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+        patient.diagnosis = diagnosis
+        patient.save()
+        return Response(status=status.HTTP_200_OK)

@@ -21,7 +21,8 @@ class User(AbstractUser):
     )
     type = models.CharField(max_length=20, choices=Types, default='患者')
     workSchedule = models.JSONField(verbose_name='工作时间表', blank=True, null=True)
-    diagnosis = models.JSONField(verbose_name='诊断记录', blank=True, null=True)
+    diagnosis = models.ManyToManyField('Diagnosis', related_name='diagnosis', blank=True)
+    category = models.CharField(max_length=20, verbose_name='科室类别', default='normal')
 
     class Meta:
         db_table = 'users'
@@ -47,3 +48,18 @@ class EmailVerifyRecord(models.Model):
     def __unicode__(self):
         return '{0}({1})'.format(self.code, self.email)
 
+
+class Diagnosis(models.Model):
+    doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='医生')
+    content = models.TextField(verbose_name='诊断内容')
+    is_taken = models.BooleanField(default=False, verbose_name='是否已取药')
+    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
+    is_delete = models.BooleanField(default=False, verbose_name='逻辑删除')
+
+    class Meta:
+        db_table = 'diagnosis'
+        verbose_name = '诊断表'
+
+    def __str__(self):
+        return self.content

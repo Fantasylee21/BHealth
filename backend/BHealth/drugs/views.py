@@ -6,7 +6,7 @@ from drugs.models import Drug
 from drugs.serializers import DrugSerializer
 from permisson import UserPermission, NotPatientPermission, YaoshiPermission
 from users import models
-from users.models import User, EmailVerifyRecord
+from users.models import User, EmailVerifyRecord, Diagnosis
 from users.send_email import send_code_email
 from users.serializers import UserSerializer, DoctorSerializer
 import os
@@ -63,7 +63,11 @@ class DrugView(GenericViewSet):
         return Response(serializers.data, status=status.HTTP_200_OK)
 
     def delet_by_diagnosis(self, request, *args, **kwargs):
-        diagnosis = request.data.get('diagnosis')
+        userid = request.data.get('userid')
+        patient = User.objects.get(id=userid)
+        diagnosis =patient.diagnosis.filter(is_taken=False).order_by('-create_time').first().content
+        a=type(diagnosis)
+        diagnosis = json.loads(diagnosis.replace("'", '"'))
         takenDrugs = diagnosis['takenDrugs']
         account = 0
         for takendrug in takenDrugs:
