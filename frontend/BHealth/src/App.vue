@@ -39,10 +39,19 @@ const toggleCollapse = () => {
 
 .el-aside {
     transition: width 0.3s;
+    z-index: 2000;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    background-color: #fff;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,.12);
 }
 
 .main-content {
     flex: 1;
     padding: 20px;
+    overflow: auto;
+    margin-left: 50px;
+    width: 100%;
 }
 </style>
