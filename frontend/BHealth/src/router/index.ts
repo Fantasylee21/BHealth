@@ -2,6 +2,7 @@ import {createRouter, createWebHistory, type RouteRecordRaw} from 'vue-router'
 
 const MainStaging = () => import('@/views/MainStaging.vue')
 const News = () => import('@/views/NewsBoard.vue')
+const RegisterNumber = () => import('@/views/RegisterNumber.vue')
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -13,6 +14,11 @@ const routes: Array<RouteRecordRaw> = [
 		path: '/news',
 		name: 'News',
 		component: News,
+	},
+	{
+		path: '/registerNumber',
+		name: 'RegisterNumber',
+		component: RegisterNumber,
 	}
 ]
 

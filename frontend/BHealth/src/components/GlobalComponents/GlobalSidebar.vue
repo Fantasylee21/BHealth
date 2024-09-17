@@ -39,7 +39,7 @@
             </el-icon>
             <template #title>Navigator Two</template>
         </el-menu-item>
-        <el-menu-item index="/staging">
+        <el-menu-item index="/registerNumber">
             <el-icon>
                 <document/>
             </el-icon>
