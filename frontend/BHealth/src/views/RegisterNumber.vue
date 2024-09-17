@@ -26,9 +26,9 @@
               <el-button type="primary" @click="searchByName">搜索</el-button>
           </div>
       </div>
-      <div class="createDoctor">
-        <el-button type="info" @click="createDoctor">新增医生</el-button>
-      </div>
+<!--      <div class="createDoctor">-->
+<!--        <el-button type="info" @click="createDoctor">新增医生</el-button>-->
+<!--      </div>-->
     </div>
     <div class="tableContainer">
       <table>
@@ -280,17 +280,18 @@ const submitDescription = () => {
     background: 'rgba(0, 0, 0, 0.7)',
   })
   setTimeout(() => {
-    loading.close()
+    loading.close();
     dialogFormVisible2.value = false;
     dialogFormVisible3.value = true;
+    description.value='';
   }, 3000)
 }
 
-const createDoctor = () => {
-  console.log('新增医生');
-  //跳转到新增医生页面
-  //TODO
-};
+// const createDoctor = () => {
+//   console.log('新增医生');
+//   //跳转到新增医生页面
+//   //TODO
+// };
 
 const openAi = () => {
   console.log('打开AI聊天');
@@ -497,9 +498,9 @@ button {
 }
 
 .el-dialog {
-  border-radius: 12px; /* 圆角 */
+  border-radius: 30px; /* 圆角 */
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15); /* 增加阴影 */
-  padding: 20px;
+  padding: 30px;
   background-color: #f7f7f7;
 }
 
@@ -515,8 +516,8 @@ button {
   padding: 15px;
   text-align: right;
   background-color: #f0f0f0;
-  border-bottom-left-radius: 12px; /* 底部圆角 */
-  border-bottom-right-radius: 12px; /* 底部圆角 */
+  border-bottom-left-radius: 30px; /* 底部圆角 */
+  border-bottom-right-radius: 30px; /* 底部圆角 */
 }
 
 .el-dialog__header {
@@ -526,8 +527,10 @@ button {
   background-color: #f0f0f0;
   color: white; /* 标题文字颜色 */
   padding: 15px;
-  border-top-left-radius: 12px; /* 顶部圆角 */
-  border-top-right-radius: 12px; /* 顶部圆角 */
+  border-top-left-radius: 30px; /* 顶部圆角 */
+  border-top-right-radius: 30px; /* 顶部圆角 */
+  text-align: center;
+
 }
 
 </style>
