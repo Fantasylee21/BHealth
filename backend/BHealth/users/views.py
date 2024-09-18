@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from permisson import UserPermission, NotPatientPermission
+from BHealth.settings import MEDIA_ROOT
+from permisson import UserPermission, NotPatientPermission, SuperUserPermission
 from users import models
 from users.models import User, EmailVerifyRecord
 from users.send_email import send_code_email
@@ -128,7 +129,7 @@ class LoginView(TokenObtainPairView):
 class AvatarView(GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, UserPermission]
+    permission_classes = [IsAuthenticated, UserPermission,SuperUserPermission]
 
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -231,3 +232,12 @@ class PatientView(GenericViewSet):
         patient.diagnosis = diagnosis
         patient.save()
         return Response(status=status.HTTP_200_OK)
+
+class FileView(APIView):
+    """获取文件的视图"""
+
+    def get(self, request, name):
+        path = os.path.join(MEDIA_ROOT, name)
+        if os.path.isfile(path):
+            return FileResponse(open(path, 'rb'))
+        return Response({'error': "没有找到该文件"}, status=status.HTTP_404_NOT_FOUND)

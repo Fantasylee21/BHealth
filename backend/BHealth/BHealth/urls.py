@@ -15,10 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+
+from users.views import FileView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include('users.urls')),
     path("drugs/", include('drugs.urls')),
+    path("news/", include('news.urls')),
+    re_path(r'^files/(?P<name>.*)$', FileView.as_view(), name='serve-file'),  # 获取静态文件
 ]
