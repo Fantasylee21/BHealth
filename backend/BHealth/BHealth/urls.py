@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
+from news.views import AiViewSet
 from users.views import FileView
 
 urlpatterns = [
@@ -25,4 +26,5 @@ urlpatterns = [
     path("drugs/", include('drugs.urls')),
     path("news/", include('news.urls')),
     re_path(r'^files/(?P<name>.*)$', FileView.as_view(), name='serve-file'),  # 获取静态文件
+    path("aiask/", AiViewSet.as_view({'post': 'ask'}), name='向ai提问')
 ]

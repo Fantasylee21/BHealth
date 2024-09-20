@@ -65,14 +65,17 @@ class DrugView(GenericViewSet):
     def delet_by_diagnosis(self, request, *args, **kwargs):
         userid = request.data.get('userid')
         patient = User.objects.get(id=userid)
-        diagnosis =patient.diagnosis.filter(is_taken=False).order_by('-create_time').first().content
-        a=type(diagnosis)
+        diagnosis = Diagnosis.objects.filter(patient=patient, is_taken=False).order_by('-create_time').first().content
+        # a = type(diagnosis)
         diagnosis = json.loads(diagnosis.replace("'", '"'))
         takenDrugs = diagnosis['takenDrugs']
         account = 0
         for takendrug in takenDrugs:
             if takendrug[1] < 0:
                 return Response({'error': '数量不能为负数'}, status=status.HTTP_400_BAD_REQUEST)
+            if not Drug.objects.filter(name=takendrug[0]).exists():
+                return Response({'error': '药品不存在'}, status=status.HTTP_400_BAD_REQUEST)
+
             drug = Drug.objects.get(name=takendrug[0])
             if drug.stock < takendrug[1]:
                 return Response({f'error': f'库存{drug}不足,剩余量为{drug.stock}'}, status=status.HTTP_400_BAD_REQUEST)

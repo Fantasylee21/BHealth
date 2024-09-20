@@ -3,13 +3,14 @@ from rest_framework.viewsets import GenericViewSet
 
 from news.models import News
 from news.serializers import NewsSerializer
+from news.unit import ask
 from permisson import SuperUserPermission
 import re
 
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.views import APIView
 
 from permisson import UserPermission, NotPatientPermission
@@ -38,6 +39,7 @@ from rest_framework.throttling import AnonRateThrottle
 class NewsView(GenericViewSet):
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticated]
+    queryset = News.objects.all()
 
     def get(self, request, *args, **kwargs):
         news = News.objects.all()
@@ -53,21 +55,30 @@ class NewsView(GenericViewSet):
         title = request.data.get('title')
         content = request.data.get('content')
         front_image = request.data.get('front_image')
-        if not all([title, content, front_image]):
+        discretion = request.data.get('discretion')
+        if not all([title, content, discretion]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
-        news = News.objects.create(title=title, content=content, front_image=front_image)
+        news = News.objects.create(title=title, content=content, front_image=front_image, discretion=discretion)
         serializer = NewsSerializer(news)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(methods=['put'], detail=False, permission_classes=[SuperUserPermission])
     def delete(self, request, *args, **kwargs):
-        id = request.data.get('id')
-        news = News.objects.get(id=id)
+        news = self.get_object()
         news.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_by_id(self, request, *args, **kwargs):
-        id = kwargs.get('id')
-        news = News.objects.get(id=id)
+        news = self.get_object()
         serializer = NewsSerializer(news)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AiViewSet(viewsets.ModelViewSet):
+    def ask(self, request, *args, **kwargs):
+        content = request.data.get('content')
+        if not content:
+            return Response({'error': '缺少content参数'}, status=400)
+
+        res = ask(content)
+        return Response({'result': res}, status=200)

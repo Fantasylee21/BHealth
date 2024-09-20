@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render
@@ -9,7 +10,7 @@ from rest_framework.views import APIView
 from BHealth.settings import MEDIA_ROOT
 from permisson import UserPermission, NotPatientPermission, SuperUserPermission
 from users import models
-from users.models import User, EmailVerifyRecord
+from users.models import User, EmailVerifyRecord, WorkSchedule, Diagnosis
 from users.send_email import send_code_email
 from users.serializers import UserSerializer, DoctorSerializer
 import os
@@ -129,7 +130,7 @@ class LoginView(TokenObtainPairView):
 class AvatarView(GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, UserPermission,SuperUserPermission]
+    permission_classes = [IsAuthenticated, UserPermission, SuperUserPermission]
 
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -153,8 +154,13 @@ class DoctorView(GenericViewSet):
     permission_classes = [IsAuthenticated, UserPermission]
 
     def get(self, request, *args, **kwargs):
-        doctors = User.objects.filter(type='医生')
-        serializer = self.get_serializer(doctors, many=True)
+        doctors = User.objects.filter(type='doctor')
+        # doctors = User.objects.all()
+        page = self.paginate_queryset(doctors)
+        if page is not None:
+            serializer = DoctorSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = DoctorSerializer(doctors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_single_doctor(self, request, *args, **kwargs):
@@ -165,13 +171,9 @@ class DoctorView(GenericViewSet):
     @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
     def post(self, request, *args, **kwargs):
         doctor = self.get_object()
-        workSchedule = request.data.get('workSchedule')
         introduction = request.data.get('introduction')
-        if doctor.type != '医生':
+        if doctor.type != 'doctor':
             return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
-        # 改变医生的时间表
-        if workSchedule:
-            doctor.workSchedule = workSchedule
         if introduction:
             doctor.introduction = introduction
         doctor.save()
@@ -180,20 +182,14 @@ class DoctorView(GenericViewSet):
     def write_diagnosis(self, request, *args, **kwargs):
         doctor = self.request.user
         patient = self.get_object()
-        diagnosis = request.data.get('diagnosis')
-        if not diagnosis:
-            return Response({"error": "诊断记录不能为空"}, status=status.HTTP_400_BAD_REQUEST)
-        diagnosis_con = models.Diagnosis.objects.create(doctor=doctor, content=diagnosis)
-
-        patient.diagnosis.add(diagnosis_con)
-        patient.save()
-        return Response(status=status.HTTP_200_OK)
+        diagnosis = Diagnosis.objects.create(doctor=doctor, patient=patient, content=request.data.get('content'))
+        return Response(status=status.HTTP_201_CREATED)
 
     def get_special_doctors(self, request, *args, **kwargs):
         name = request.GET.get('name')
         category = request.GET.get('category')
         content = request.GET.get('content')
-        doctors = User.objects.filter(type='医生')
+        doctors = User.objects.filter(type='doctor')
         if name:
             doctors = doctors.filter(username=name)
         if category:
@@ -203,6 +199,24 @@ class DoctorView(GenericViewSet):
         serializer = self.get_serializer(doctors, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
+    def upload_workSchedule(self, request, *args, **kwargs):
+        doctor = self.get_object()
+        from_time = request.data.get('from_time')
+        end_time = request.data.get('end_time')
+        num = request.data.get('num')
+        now_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+        if not all([from_time, end_time, num]):
+            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
+        if (from_time < now_time) or (end_time < now_time):
+            return Response({"error": "时间不能早于当前时间"}, status=status.HTTP_400_BAD_REQUEST)
+        if from_time < end_time:
+            return Response({"error": "开始时间不能晚于结束时间"}, status=status.HTTP_400_BAD_REQUEST)
+        if WorkSchedule.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time).exists():
+            return Response({"error": "该时间段已存在"}, status=status.HTTP_400_BAD_REQUEST)
+        WorkSchedule.objects.create(doctor=doctor, from_time=from_time, end_time=end_time, num=num)
+        return Response(status=status.HTTP_200_OK)
+
 
 class PatientView(GenericViewSet):
     queryset = User.objects.all()
@@ -210,7 +224,7 @@ class PatientView(GenericViewSet):
     # 分页
     @action(methods=['get'], detail=True, permissions=[NotPatientPermission])
     def get_patients(self, request, *args, **kwargs):
-        patients = User.objects.filter(type='患者')
+        patients = User.objects.filter(type='patient')
         page = self.paginate_queryset(patients)
         if page is not None:
             serializer = UserSerializer(page, many=True)
@@ -223,15 +237,6 @@ class PatientView(GenericViewSet):
         serializer = UserSerializer(patient)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
-    def put_diagnosis(self, request, *args, **kwargs):
-        patient = self.get_object()
-        diagnosis = request.data.get('diagnosis')
-        if not diagnosis:
-            return Response({"error": "诊断记录不能为空"}, status=status.HTTP_400_BAD_REQUEST)
-        patient.diagnosis = diagnosis
-        patient.save()
-        return Response(status=status.HTTP_200_OK)
 
 class FileView(APIView):
     """获取文件的视图"""
@@ -241,3 +246,26 @@ class FileView(APIView):
         if os.path.isfile(path):
             return FileResponse(open(path, 'rb'))
         return Response({'error': "没有找到该文件"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AppointmentView(APIView):
+    def post(self, request, *args, **kwargs):
+        patient = request.user
+        doctor_id = request.data.get('doctor_id')
+        time = request.data.get('time')
+        if not doctor_id or not time:
+            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
+        doctor = User.objects.get(id=doctor_id)
+        appointment = models.Appointment.objects.create(patient=patient, doctor=doctor, time=time)
+        return Response(status=status.HTTP_201_CREATED)
+
+    def get(self, request, *args, **kwargs):
+        patient = request.user
+        appointments = models.Appointment.objects.filter(patient=patient)
+        serializer = models.AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        appointment = models.Appointment.objects.get(id=kwargs['id'])
+        appointment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

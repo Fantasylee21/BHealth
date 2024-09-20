@@ -1,13 +1,30 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
-from users.models import User, Diagnosis
+from users.models import User, Diagnosis, WorkSchedule
+
+
+class WorkScheduleSerializer(serializers.ModelSerializer):
+    doctor = serializers.CharField(source='doctor.username')
+    class Meta:
+        model = WorkSchedule
+        fields = ['id', 'from_time', 'end_time', 'num', 'doctor']
 
 
 class DoctorSerializer(serializers.ModelSerializer):
+    workSchedule = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'avatar', 'introduction', 'create_time',
-                  'update_time', 'workSchedule', 'category']
+                  'update_time', 'category','workSchedule']
+
+    def get_workSchedule(self, obj):
+        nowTime = datetime.now().strftime("%Y-%m-%d %H:%M")
+        workSchedule = WorkSchedule.objects.filter(doctor=obj).filter(from_time__gte=nowTime)
+        serializer = WorkScheduleSerializer(workSchedule, many=True)
+        return serializer.data
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
