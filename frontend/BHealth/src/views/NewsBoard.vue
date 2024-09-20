@@ -262,13 +262,13 @@ const clickFavor = () => {
   }
 
   .bottom {
-    //位于banner下100px的位置
-    margin-top: 100px;
-    position: relative;
-    width: 100%;
 
+    position: relative;
+    width: 1350px;
+    //水平居中，位于banner下100px的位置
+    margin: 50px auto 0;
     .selector {
-      width: 80%;
+      width: 100%;
       height: 80px;
       background-color: #f0f0f0;
       display: flex;
@@ -305,7 +305,7 @@ const clickFavor = () => {
       grid-template-columns: repeat(4, 1fr);
       gap: 40px;
       margin: 30px auto 0;
-      width: 80%;
+      width: 100%;
       .LittleNewsBoard {
         width: 100%;
         margin-top: 30px;

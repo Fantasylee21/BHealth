@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div class="main">
     <div class="navigate">
       <div class="selectDepartment">
         <el-select v-model="department" placeholder="请选择" style="width: 120px;">
@@ -119,8 +120,32 @@
       </div>
     </template>
   </el-dialog>
+  <el-dialog v-model="dialogFormVisible2" title="请先填写您的症状" width="500px">
+<!--    填写症状描述-->
+  <el-input
+    type="textarea"
+    v-model="description"
+    placeholder="请输入症状描述"
+    size="large"
+    class="inputDescription"
+  />
+
+  <template #footer>
+    <div class="dialog-footer">
+      <el-button type="primary" @click="submitDescription">
+        查询
+      </el-button>
+      <el-button @click="dialogFormVisible2 = false">取消</el-button>
+    </div>
+  </template>
+
+</el-dialog>
+<el-dialog v-model="dialogFormVisible3" title="我们的ai生成推荐结果是" width="500px">
+   <span class="aiAnswer">{{aiAnswer}}</span>
+</el-dialog>
+  </div>
   <div class="ai" @click="openAi">
-    <p class="aip">AI推荐</p>
+    <p class="aip">AI</p>
     <div class="ai-img">
       <el-image
         style="margin-top: 20px"
@@ -129,29 +154,6 @@
       />
     </div>
   </div>
-  <el-dialog v-model="dialogFormVisible2" title="请先填写您的症状" width="500px">
-<!--    填写症状描述-->
-    <el-input
-      type="textarea"
-      v-model="description"
-      placeholder="请输入症状描述"
-      size="large"
-      class="inputDescription"
-    />
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button type="primary" @click="submitDescription">
-          查询
-        </el-button>
-        <el-button @click="dialogFormVisible2 = false">取消</el-button>
-      </div>
-    </template>
-
-  </el-dialog>
-  <el-dialog v-model="dialogFormVisible3" title="我们的ai生成推荐结果是" width="500px">
-     <span class="aiAnswer">{{aiAnswer}}</span>
-  </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -301,6 +303,12 @@ const openAi = () => {
 </script>
 
 <style>
+.main {
+   width: 1350px;
+   margin: auto;
+}
+
+
 .tableContainer {
   margin: 20px;
   border: 1px solid #ddd;
@@ -422,8 +430,8 @@ button {
   position: fixed;
   right: 5%;
   bottom: 3%;
-  width: 80px;
-  height: 90px;
+  width: 60px;
+  height: 60px;
   background-color: #8c8ddc;
   z-index: 1000;
   border-radius: 25%;
@@ -463,10 +471,10 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  max-height: 60px;
-  max-width: 50px;
+  max-height: 20px;
+  max-width: 30px;
   z-index: 1001;
-  margin-left: 15px;
+  margin-left: 14px;
 }
 
 .aip {
