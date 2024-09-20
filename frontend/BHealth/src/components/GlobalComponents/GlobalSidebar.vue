@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, defineEmits} from 'vue';
+import {ref} from 'vue';
 import {
     Document,
     Menu as IconMenu,

@@ -41,14 +41,13 @@ export default {
 	},
 
 	login: async function (params: { username: string; password: string }) {
-		console.log(`output->params`, params)
+    	console.log(`output->params`, params)
 		try {
 			const user = await api.post(`users/login/`, params)
 			localStorage.setItem('token', user.data.token)
-			localStorage.setItem('refresh', user.data.refresh)
+			return user.data
 		} catch (error: any) {
 			console.log(`output->error`, error)
-			ElMessage.error(error.response.data.error[0])
 			return null
 		}
 	},

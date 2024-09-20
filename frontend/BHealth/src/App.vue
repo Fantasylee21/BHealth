@@ -37,8 +37,8 @@ const toggleCollapse = () => {
     isCollapse.value = !isCollapse.value;
 };
 
-// if (sessionStorage.getItem('preRoute')) router.push(sessionStorage.getItem('preRoute'))
-// else router.push('/loginRegister')
+if (sessionStorage.getItem('preRoute')) router.push(sessionStorage.getItem('preRoute'))
+else router.push('/loginRegister')
 </script>
 
 <style scoped>
