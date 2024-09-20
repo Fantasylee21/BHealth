@@ -304,8 +304,9 @@ const openAi = () => {
 
 <style>
 .main {
-   width: 1350px;
-   margin: auto;
+    width: 1350px;
+    margin: auto;
+    margin-top: 64px;
 }
 
 
