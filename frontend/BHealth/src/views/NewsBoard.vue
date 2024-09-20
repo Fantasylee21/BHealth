@@ -128,7 +128,7 @@ const clickFavor = () => {
 </script>
 <style scoped lang="less">
 .newsBoard {
-
+  margin-top: 64px;
   .banner {
     position: relative;
     display: flex;

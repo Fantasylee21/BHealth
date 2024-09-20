@@ -3,51 +3,57 @@
         <div class="shell">
             <div class="container a-container" id="a-container">
                 <form @submit.prevent="handleSignup" class="form" id="a-form">
-                    <h2 class="form_title title">Create Account</h2>
+                    <h2 class="form_title title">创建账号</h2>
                     <input
                             type="text"
                             class="form_input"
-                            placeholder="Username (3-16 letters, numbers, or underscores)"
+                            placeholder="用户名 (3-16位字母、数字或下划线)"
                             v-model="signupForm.username"
                     />
                     <input
                             type="password"
                             class="form_input"
-                            placeholder="Password (6-20 letters, numbers, or characters)"
+                            placeholder="密码 (6-20位字母、数字或特殊字符)"
                             v-model="signupForm.password"
                     />
                     <input
-                            type="text"
+                            type="password"
                             class="form_input"
-                            placeholder="Phone (valid phone number)"
-                            v-model="signupForm.phone"
+                            placeholder="确认密码"
+                            v-model="signupForm.passwordConfirm"
                     />
                     <input
                             type="email"
                             class="form_input"
-                            placeholder="Email (valid email address)"
+                            placeholder="邮箱 (有效的邮箱地址)"
                             v-model="signupForm.email"
                     />
+<!--                    选择病人or医生, 默认为病人-->
+                    <select v-model="signupForm.type" class="form_input" >
+                        <option value="patient">病人</option>
+                        <option value="doctor">医生</option>
+                        <option value="pharmacist">药师</option>
+                    </select>
                     <button class="form_button button submit">SIGN UP</button>
                 </form>
             </div>
 
             <div class="container b-container" id="b-container">
                 <form @submit.prevent="handleLogin" class="form" id="b-form">
-                    <h2 class="form_title title">Log In</h2>
+                    <h2 class="form_title title">登入账号</h2>
                     <input
                             type="text"
                             class="form_input"
-                            placeholder="User Name"
+                            placeholder="请输入用户名"
                             v-model="loginForm.username"
                     />
                     <input
                             type="password"
                             class="form_input"
-                            placeholder="Password"
+                            placeholder="密码 (至少6位)"
                             v-model="loginForm.password"
                     />
-                    <a class="form_link">Forgot password?</a>
+                    <a class="form_link">忘记密码？</a>
                     <button class="form_button button submit">SIGN IN</button>
                 </form>
             </div>
@@ -62,7 +68,7 @@
                 >
                     <h2 class="switch_title title" style="letter-spacing: 0">Welcome Back！</h2>
                     <p class="switch_description description">
-                        Do you already have an account? Go log in to your account and enter the wonderful world!!!
+                        已经有账号了嘛，去登入账号来进入奇妙世界吧！！！
                     </p>
                     <button class="switch_button button switch-btn" @click="changeForm">
                         SIGN UP
@@ -76,7 +82,7 @@
                 >
                     <h2 class="switch_title title" style="letter-spacing: 0">Hello Markers！</h2>
                     <p class="switch_description description">
-                        Register an account and become a proud fan member, let's embark on a wonderful journey!
+                        去注册一个账号，成为尊贵的粉丝会员，让我们踏入奇妙的旅途！
                     </p>
                     <button class="switch_button button switch-btn" @click="changeForm">
                         SIGN IN
@@ -100,8 +106,9 @@ const profile = useProfileStore()
 const signupForm = ref({
     username: '',
     password: '',
-    phone: '',
-    email: ''
+    email: '',
+    passwordConfirm: '',
+    type: 'patient',
 })
 
 const loginForm = ref({
@@ -110,25 +117,24 @@ const loginForm = ref({
 })
 
 const handleSignup = async () => {
+    if (!validateSignupForm()) return;
     await api.register(signupForm.value)
 }
 
 const handleLogin = async () => {
     const ret = await api.login(loginForm.value)
     if (ret) {
-        ElMessage.success('successfully logged in!')
+        ElMessage.success('登录成功')
         profile.updateProfile(ret)
-        localStorage.setItem('id', profile.id)
         UtilMethods.jump('/staging')
     } else {
-        ElMessage.error('login failed!')
+        ElMessage.error('密码错误或用户不存在')
     }
 }
 
 const validateSignupForm = () => {
     const usernamePattern = /^[a-zA-Z0-9_]{3,16}$/
     const passwordPattern = /^[a-zA-Z0-9!@#$%^&*]{6,20}$/
-    const phonePattern = /^[1-9]\d{9,14}$/
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
 
     if (!usernamePattern.test(signupForm.value.username)) {
@@ -139,12 +145,13 @@ const validateSignupForm = () => {
         ElMessage.error('密码格式不正确')
         return false
     }
-    if (!phonePattern.test(signupForm.value.phone)) {
-        ElMessage.error('手机号格式不正确')
-        return false
-    }
+
     if (!emailPattern.test(signupForm.value.email)) {
         ElMessage.error('邮箱格式不正确')
+        return false
+    }
+    if (signupForm.value.password !== signupForm.value.passwordConfirm) {
+        ElMessage.error('两次密码输入不一致')
         return false
     }
     return true
