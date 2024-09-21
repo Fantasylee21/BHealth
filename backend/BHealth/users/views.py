@@ -186,7 +186,7 @@ class DoctorView(GenericViewSet):
         app = Appointment.objects.filter(doctor=doctor, patient=patient, time__lte=time).first()
         if not app.exists():
             return Response({"error": "未进行预约"}, status=status.HTTP_400_BAD_REQUEST)
-        #删除这条预约
+        # 删除这条预约
         app.delete()
         diagnosis = Diagnosis.objects.create(doctor=doctor, patient=patient, content=request.data.get('content'))
         return Response(status=status.HTTP_201_CREATED)
@@ -222,7 +222,7 @@ class DoctorView(GenericViewSet):
             return Response({"error": "该时间段已存在"}, status=status.HTTP_400_BAD_REQUEST)
         ws = WorkSchedule.objects.create(doctor=doctor, from_time=from_time, end_time=end_time, num=num)
         serializer = WorkScheduleSerializer(ws)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_appointment(self, request, *args, **kwargs):
         doctor = self.request.user
@@ -268,7 +268,7 @@ class PatientView(GenericViewSet):
             workSchedule[0].save()
         appointment = models.Appointment.objects.create(patient=patient, doctor=doctor, time=time)
         serializer = AppointmentSerializer(appointment)
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_appointment(self, request, *args, **kwargs):
         patient = self.request.user
@@ -287,4 +287,30 @@ class FileView(APIView):
         return Response({'error': "没有找到该文件"}, status=status.HTTP_404_NOT_FOUND)
 
 
+class UserView(GenericViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
 
+    def put(self, request, *args, **kwargs):
+        u = self.request.user
+        if not (u.is_superuser or u.id == self.get_object().id):
+            return Response({"error": "没有权限"}, status=status.HTTP_403_FORBIDDEN)
+        user = self.get_object()
+        username = request.data.get('username')
+        email = request.data.get('email')
+        type = request.data.get('type')
+        category = request.data.get('category')
+        introduction = request.data.get('introduction')
+
+        if username:
+            user.username = username
+        if email:
+            user.email = email
+        if type:
+            user.type = type
+        if category:
+            user.category = category
+        if introduction:
+            user.introduction = introduction
+        user.save()
+        return Response(status=status.HTTP_200_OK)
