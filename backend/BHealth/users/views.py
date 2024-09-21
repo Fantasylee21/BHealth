@@ -61,8 +61,8 @@ class RigisterView(APIView):
         #     return Response({"error": "两次密码不一致"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 校验密码强度
-        if not 6 < len(password) < 18:
-            return Response({"error": "密码长度不在要求范围内"}, status=status.HTTP_400_BAD_REQUEST)
+        # if not 6 < len(password) < 18:
+        #     return Response({"error": "密码长度不在要求范围内"}, status=status.HTTP_400_BAD_REQUEST)
         # 匹配邮箱
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
