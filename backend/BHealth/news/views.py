@@ -56,9 +56,10 @@ class NewsView(GenericViewSet):
         content = request.data.get('content')
         front_image = request.data.get('front_image')
         discretion = request.data.get('discretion')
+        type = request.data.get('type')
         if not all([title, content, discretion]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
-        news = News.objects.create(title=title, content=content, front_image=front_image, discretion=discretion)
+        news = News.objects.create(title=title, content=content, front_image=front_image, discretion=discretion,type = type)
         serializer = NewsSerializer(news)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

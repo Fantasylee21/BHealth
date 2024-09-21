@@ -37,10 +37,8 @@ class RigisterView(APIView):
         username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
-        # passwordConfirm = request.data.get('passwordconfirm')
         code = request.data.get('code')
         type = request.data.get('type')
-        # category = request.data.get('category')
         try:
             try:
                 tmp = EmailVerifyRecord.objects.get(email=email)
@@ -53,27 +51,14 @@ class RigisterView(APIView):
             return Response({"error": "验证码不存在"}, status=status.HTTP_400_BAD_REQUEST)
         if tmp.code != code:
             return Response({"error": "验证码错误"}, status=status.HTTP_400_BAD_REQUEST)
-        # print(username, email, password, passwordConfirm)
         if not all([username, email, password, code]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=email).exists():
             return Response({"error": "用户邮箱已注册"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # if password != passwordConfirm:
-        #     return Response({"error": "两次密码不一致"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 校验密码强度
-        # if not 6 < len(password) < 18:
-        #     return Response({"error": "密码长度不在要求范围内"}, status=status.HTTP_400_BAD_REQUEST)
-        # 匹配邮箱
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
         tmp.delete()
-        # if category:
-        #     user = User.objects.create_user(username=username, email=email, password=password, type=type,
-        #                                     category=category)
-        # else:
         user = User.objects.create_user(username=username, email=email, password=password, type=type)
         result = {
             "username": user.username,
