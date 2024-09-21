@@ -22,20 +22,27 @@
                             placeholder="确认密码"
                             v-model="signupForm.passwordConfirm"
                     />
+                  <!--                    选择病人or医生, 默认为病人-->
+                    <select v-model="signupForm.type" class="form_input" >
+                        <option value="patient">病人</option>
+                        <option value="doctor">医生</option>
+                        <option value="pharmacist">药师</option>
+                    </select>
                     <input
                             type="email"
                             class="form_input"
                             placeholder="邮箱 (有效的邮箱地址)"
                             v-model="signupForm.email"
                     />
-<!--                    选择病人or医生, 默认为病人-->
-                    <select v-model="signupForm.type" class="form_input" >
-                        <option value="patient">病人</option>
-                        <option value="doctor">医生</option>
-                        <option value="pharmacist">药师</option>
-                    </select>
+                    <input
+                            type="text"
+                            class="form_input"
+                            placeholder="邮箱验证码"
+                            v-model="signupForm.code"
+                    />
                     <button class="form_button button submit">SIGN UP</button>
                 </form>
+              <button @click="sendEmailCode" class="sendCode">SEND</button>
             </div>
 
             <div class="container b-container" id="b-container">
@@ -107,8 +114,9 @@ const signupForm = ref({
     username: '',
     password: '',
     email: '',
-    passwordConfirm: '',
     type: 'patient',
+    code: '',
+    passwordConfirm: ''
 })
 
 const loginForm = ref({
@@ -180,6 +188,17 @@ const changeForm = () => {
     bContainer.classList.toggle('is-z')
 
     isSignInVisible.value = !isSignInVisible.value
+}
+
+const sendEmailCode = async () => {
+    if (!signupForm.value.email) {
+        ElMessage.error('请输入邮箱')
+        return
+    }
+    const params = {
+        email: signupForm.value.email
+    }
+    await api.sendCode(params)
 }
 </script>
 
@@ -474,4 +493,31 @@ const changeForm = () => {
     color: #181818;
     letter-spacing: 0px;
 }
+
+.sendCode {
+    cursor: pointer;
+    margin-top: 150px;
+    background-color: #4b70e2;
+    color: #f9f9f9;
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    padding: 10px 15px;
+    font-size: 12px;
+    letter-spacing: 1.15px;
+    box-shadow: 2px 2px 4px #d1d9e6,
+    -2px -2px 4px #f9f9f9;
+    font-weight: 550;
+    transition: 0.25s;
+    position: relative;
+    margin-left: -80px;
+}
+
+.sendCode:hover {
+    box-shadow: 4px 4px 4px #d1d9e6,
+    -4px -4px 4px #f9f9f9;
+    transform: scale(0.99);
+    transition: 0.25s;
+}
+
 </style>
