@@ -42,12 +42,15 @@ class RigisterView(APIView):
         type = request.data.get('type')
         # category = request.data.get('category')
         try:
-            tmp = EmailVerifyRecord.objects.get(email=email)
-        except MultipleObjectsReturned:
-            # 处理多个结果的情况
-            tmps = EmailVerifyRecord.objects.filter(email=email)
-            # 例如，选择最新的记录
-            tmp = tmps.order_by('-send_time').first()
+            try:
+                tmp = EmailVerifyRecord.objects.get(email=email)
+            except MultipleObjectsReturned:
+                # 处理多个结果的情况
+                tmps = EmailVerifyRecord.objects.filter(email=email)
+                # 例如，选择最新的记录
+                tmp = tmps.order_by('-send_time').first()
+        except EmailVerifyRecord.DoesNotExist:
+            return Response({"error": "验证码不存在"}, status=status.HTTP_400_BAD_REQUEST)
         if tmp.code != code:
             return Response({"error": "验证码错误"}, status=status.HTTP_400_BAD_REQUEST)
         # print(username, email, password, passwordConfirm)
