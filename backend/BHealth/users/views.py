@@ -10,9 +10,9 @@ from rest_framework.views import APIView
 from BHealth.settings import MEDIA_ROOT
 from permisson import UserPermission, NotPatientPermission, SuperUserPermission
 from users import models
-from users.models import User, EmailVerifyRecord, WorkSchedule, Diagnosis
+from users.models import User, EmailVerifyRecord, WorkSchedule, Diagnosis, Appointment
 from users.send_email import send_code_email
-from users.serializers import UserSerializer, DoctorSerializer
+from users.serializers import UserSerializer, DoctorSerializer, AppointmentSerializer, WorkScheduleSerializer
 import os
 import random
 import re
@@ -37,10 +37,10 @@ class RigisterView(APIView):
         username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
-        passwordConfirm = request.data.get('passwordconfirm')
+        # passwordConfirm = request.data.get('passwordconfirm')
         code = request.data.get('code')
         type = request.data.get('type')
-        category = request.data.get('category')
+        # category = request.data.get('category')
         try:
             tmp = EmailVerifyRecord.objects.get(email=email)
         except MultipleObjectsReturned:
@@ -51,14 +51,14 @@ class RigisterView(APIView):
         if tmp.code != code:
             return Response({"error": "验证码错误"}, status=status.HTTP_400_BAD_REQUEST)
         # print(username, email, password, passwordConfirm)
-        if not all([username, email, password, passwordConfirm, code]):
+        if not all([username, email, password, code]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=email).exists():
             return Response({"error": "用户邮箱已注册"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if password != passwordConfirm:
-            return Response({"error": "两次密码不一致"}, status=status.HTTP_400_BAD_REQUEST)
+        # if password != passwordConfirm:
+        #     return Response({"error": "两次密码不一致"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 校验密码强度
         if not 6 < len(password) < 18:
@@ -67,11 +67,11 @@ class RigisterView(APIView):
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
         tmp.delete()
-        if category:
-            user = User.objects.create_user(username=username, email=email, password=password, type=type,
-                                            category=category)
-        else:
-            user = User.objects.create_user(username=username, email=email, password=password, type=type)
+        # if category:
+        #     user = User.objects.create_user(username=username, email=email, password=password, type=type,
+        #                                     category=category)
+        # else:
+        user = User.objects.create_user(username=username, email=email, password=password, type=type)
         result = {
             "username": user.username,
             "email": user.email,
@@ -182,6 +182,12 @@ class DoctorView(GenericViewSet):
     def write_diagnosis(self, request, *args, **kwargs):
         doctor = self.request.user
         patient = self.get_object()
+        time = datetime.now().strftime("%Y-%m-%d %H:%M")
+        app = Appointment.objects.filter(doctor=doctor, patient=patient, time__lte=time).first()
+        if not app.exists():
+            return Response({"error": "未进行预约"}, status=status.HTTP_400_BAD_REQUEST)
+        #删除这条预约
+        app.delete()
         diagnosis = Diagnosis.objects.create(doctor=doctor, patient=patient, content=request.data.get('content'))
         return Response(status=status.HTTP_201_CREATED)
 
@@ -214,8 +220,15 @@ class DoctorView(GenericViewSet):
             return Response({"error": "开始时间不能晚于结束时间"}, status=status.HTTP_400_BAD_REQUEST)
         if WorkSchedule.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time).exists():
             return Response({"error": "该时间段已存在"}, status=status.HTTP_400_BAD_REQUEST)
-        WorkSchedule.objects.create(doctor=doctor, from_time=from_time, end_time=end_time, num=num)
-        return Response(status=status.HTTP_200_OK)
+        ws = WorkSchedule.objects.create(doctor=doctor, from_time=from_time, end_time=end_time, num=num)
+        serializer = WorkScheduleSerializer(ws)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+    def get_appointment(self, request, *args, **kwargs):
+        doctor = self.request.user
+        appointments = models.Appointment.objects.filter(doctor=doctor)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class PatientView(GenericViewSet):
@@ -237,6 +250,32 @@ class PatientView(GenericViewSet):
         serializer = UserSerializer(patient)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def upload_appointment(self, request, *args, **kwargs):
+        patient = self.request.user
+        doctor_id = request.data.get('doctor_id')
+        doctor = User.objects.get(id=doctor_id)
+        if doctor.type != 'doctor':
+            return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
+        time = request.data.get('time')
+        if not time:
+            return Response({"error": "时间不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+        # workSchedule = WorkSchedule.objects.filter(doctor=doctor)
+        workSchedule = WorkSchedule.objects.filter(doctor=doctor).filter(from_time__lte=time).filter(end_time__gte=time)
+        if not workSchedule or workSchedule[0].num <= 0:
+            return Response({"error": "该时间段医生不在工作或预约名额不足"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            workSchedule[0].num -= 1
+            workSchedule[0].save()
+        appointment = models.Appointment.objects.create(patient=patient, doctor=doctor, time=time)
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
+
+    def get_appointment(self, request, *args, **kwargs):
+        patient = self.request.user
+        appointments = models.Appointment.objects.filter(patient=patient)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class FileView(APIView):
     """获取文件的视图"""
@@ -248,24 +287,4 @@ class FileView(APIView):
         return Response({'error': "没有找到该文件"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class AppointmentView(APIView):
-    def post(self, request, *args, **kwargs):
-        patient = request.user
-        doctor_id = request.data.get('doctor_id')
-        time = request.data.get('time')
-        if not doctor_id or not time:
-            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
-        doctor = User.objects.get(id=doctor_id)
-        appointment = models.Appointment.objects.create(patient=patient, doctor=doctor, time=time)
-        return Response(status=status.HTTP_201_CREATED)
 
-    def get(self, request, *args, **kwargs):
-        patient = request.user
-        appointments = models.Appointment.objects.filter(patient=patient)
-        serializer = models.AppointmentSerializer(appointments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def delete(self, request, *args, **kwargs):
-        appointment = models.Appointment.objects.get(id=kwargs['id'])
-        appointment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
