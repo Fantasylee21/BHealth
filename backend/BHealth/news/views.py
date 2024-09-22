@@ -52,7 +52,7 @@ class NewsView(GenericViewSet):
 
     @action(methods=['post'], detail=False, permission_classes=[SuperUserPermission])
     def post(self, request, *args, **kwargs):
-        serializer = NewsSerializer(data=request.data,partial=True, context={'request': request})
+        serializer = NewsSerializer(data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
