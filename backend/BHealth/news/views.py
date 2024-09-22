@@ -75,7 +75,7 @@ class NewsView(GenericViewSet):
         if not type:
             return Response({'error': '缺少type参数'}, status=400)
         news = News.objects.filter(type=type)
-        serializer = NewsSerializer(news, many=True)
+        serializer = NewsSerializer(news, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
