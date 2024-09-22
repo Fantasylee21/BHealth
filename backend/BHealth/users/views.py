@@ -98,7 +98,7 @@ class SendEmailRegisterCodeView(APIView):
 
 class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
 
         try:
             serializer.is_valid(raise_exception=True)
@@ -123,13 +123,14 @@ class AvatarView(GenericViewSet):
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
         avatar = request.data.get('avatar')
+        # print(avatar)
         if not avatar:
             return Response({"error": "头像不能为空"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if not avatar.name.endswith('.jpg') and not avatar.name.endswith('.png'):
             return Response({"error": "头像格式错误"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if avatar.size > 1024 * 300:
             return Response({"error": "头像过大"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        serializer = self.get_serializer(obj, data={"avatar": avatar}, partial=True)
+        serializer = self.get_serializer(obj, data={"avatar": avatar}, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -146,14 +147,14 @@ class DoctorView(GenericViewSet):
         # doctors = User.objects.all()
         page = self.paginate_queryset(doctors)
         if page is not None:
-            serializer = DoctorSerializer(page, many=True)
+            serializer = DoctorSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
-        serializer = DoctorSerializer(doctors, many=True)
+        serializer = DoctorSerializer(doctors, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_single_doctor(self, request, *args, **kwargs):
         doctor = self.get_object()
-        serializer = self.get_serializer(doctor)
+        serializer = self.get_serializer(doctor, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
@@ -165,14 +166,15 @@ class DoctorView(GenericViewSet):
         if introduction:
             doctor.introduction = introduction
         doctor.save()
-        return Response(status=status.HTTP_200_OK)
+        serializer = self.get_serializer(doctor, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def write_diagnosis(self, request, *args, **kwargs):
         doctor = self.request.user
         patient = self.get_object()
         time = datetime.now().strftime("%Y-%m-%d %H:%M")
-        app = Appointment.objects.filter(doctor=doctor, patient=patient, time__lte=time).first()
-        if not app.exists():
+        app = Appointment.objects.filter(doctor=doctor, user=patient, from_time__lte=time, end_time__gt=time).first()
+        if not app:
             return Response({"error": "未进行预约"}, status=status.HTTP_400_BAD_REQUEST)
         # 删除这条预约
         app.delete()
@@ -190,7 +192,7 @@ class DoctorView(GenericViewSet):
             doctors = doctors.filter(category=category)
         if content:
             doctors = doctors.filter(introduction__contains=content)
-        serializer = self.get_serializer(doctors, many=True)
+        serializer = self.get_serializer(doctors, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True, permissions=[NotPatientPermission])
@@ -204,7 +206,7 @@ class DoctorView(GenericViewSet):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
         if (from_time < now_time) or (end_time < now_time):
             return Response({"error": "时间不能早于当前时间"}, status=status.HTTP_400_BAD_REQUEST)
-        if from_time < end_time:
+        if from_time > end_time:
             return Response({"error": "开始时间不能晚于结束时间"}, status=status.HTTP_400_BAD_REQUEST)
         if WorkSchedule.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time).exists():
             return Response({"error": "该时间段已存在"}, status=status.HTTP_400_BAD_REQUEST)
@@ -212,15 +214,10 @@ class DoctorView(GenericViewSet):
         serializer = WorkScheduleSerializer(ws)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get_appointment(self, request, *args, **kwargs):
-        doctor = self.request.user
-        appointments = models.Appointment.objects.filter(doctor=doctor)
-        serializer = AppointmentSerializer(appointments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class PatientView(GenericViewSet):
     queryset = User.objects.all()
+
 
     # 分页
     @action(methods=['get'], detail=True, permissions=[NotPatientPermission])
@@ -228,14 +225,14 @@ class PatientView(GenericViewSet):
         patients = User.objects.filter(type='patient')
         page = self.paginate_queryset(patients)
         if page is not None:
-            serializer = UserSerializer(page, many=True)
+            serializer = UserSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
-        serializer = UserSerializer(patients, many=True)
+        serializer = UserSerializer(patients, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_single_patient(self, request, *args, **kwargs):
         patient = self.get_object()
-        serializer = UserSerializer(patient)
+        serializer = UserSerializer(patient, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def upload_appointment(self, request, *args, **kwargs):
@@ -244,25 +241,23 @@ class PatientView(GenericViewSet):
         doctor = User.objects.get(id=doctor_id)
         if doctor.type != 'doctor':
             return Response({"error": "该用户不是医生"}, status=status.HTTP_400_BAD_REQUEST)
-        time = request.data.get('time')
-        if not time:
-            return Response({"error": "时间不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+        from_time = request.data.get('from_time')
+        end_time = request.data.get('end_time')
+        if not all([doctor_id, from_time, end_time]):
+            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
         # workSchedule = WorkSchedule.objects.filter(doctor=doctor)
-        workSchedule = WorkSchedule.objects.filter(doctor=doctor).filter(from_time__lte=time).filter(end_time__gte=time)
+        workSchedule = WorkSchedule.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time)
+        if Appointment.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time).exists():
+            return Response({"error": "该时间段你已预约"}, status=status.HTTP_400_BAD_REQUEST)
         if not workSchedule or workSchedule[0].num <= 0:
             return Response({"error": "该时间段医生不在工作或预约名额不足"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             workSchedule[0].num -= 1
             workSchedule[0].save()
-        appointment = models.Appointment.objects.create(patient=patient, doctor=doctor, time=time)
+        appointment = models.Appointment.objects.create(user=patient, doctor=doctor, from_time=from_time,
+                                                        end_time=end_time)
         serializer = AppointmentSerializer(appointment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def get_appointment(self, request, *args, **kwargs):
-        patient = self.request.user
-        appointments = models.Appointment.objects.filter(patient=patient)
-        serializer = AppointmentSerializer(appointments, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FileView(APIView):
@@ -301,4 +296,10 @@ class UserView(GenericViewSet):
         if introduction:
             user.introduction = introduction
         user.save()
-        return Response(status=status.HTTP_200_OK)
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

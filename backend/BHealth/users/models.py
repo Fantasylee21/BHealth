@@ -43,8 +43,8 @@ class Appointment(models.Model):
     doctor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Doctor')
     content = models.TextField(verbose_name='预约内容')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
-    update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
-    time = models.DateTimeField(verbose_name='预约时间')
+    from_time = models.DateTimeField(verbose_name='开始时间')
+    end_time = models.DateTimeField(verbose_name='结束时间')
     is_delete = models.BooleanField(default=False, verbose_name='逻辑删除')
 
     class Meta:
