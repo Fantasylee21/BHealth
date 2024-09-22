@@ -33,6 +33,7 @@
               :imgPath="item.front_image"
               :title="item.title"
               :description="item.discretion"
+              @click="jumpToNewsDetail(item.id)"
             />
           </div>
         </div>
@@ -152,6 +153,15 @@ const clickAll = () => {
   console.log('allNews +++++++++++', allNews)
 }
 
+const getNewsById = async (id) => {
+  const res = await api.getNewsById({id})
+  console.log('res', res)
+}
+
+const jumpToNewsDetail = (id) => {
+  getNewsById(id)
+  router.push({path: '/newsDetail/' + id})
+}
 
 </script>
 <style scoped lang="less">

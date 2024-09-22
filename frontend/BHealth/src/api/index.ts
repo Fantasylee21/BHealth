@@ -101,5 +101,22 @@ export default {
 			console.log(`output->error`, error)
 			ElMessage.error(error.response.data.error)
 		}
-	}
+	},
+
+	getNewsById: async function (params: { id: string }) {
+		try {
+			const res = await api.get(`/news/news/${params.id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+
 }
