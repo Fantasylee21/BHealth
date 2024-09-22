@@ -45,7 +45,7 @@ class NewsView(GenericViewSet):
         news = News.objects.all()
         page = self.paginate_queryset(news)
         if page is not None:
-            serializer = NewsSerializer(page, many=True)
+            serializer = NewsSerializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
         serializer = NewsSerializer(news, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -67,7 +67,7 @@ class NewsView(GenericViewSet):
 
     def get_by_id(self, request, *args, **kwargs):
         news = self.get_object()
-        serializer = NewsSerializer(news)
+        serializer = NewsSerializer(news, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_by_type(self, request, *args, **kwargs):
