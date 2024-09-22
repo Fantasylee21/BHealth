@@ -52,16 +52,12 @@ class NewsView(GenericViewSet):
 
     @action(methods=['post'], detail=False, permission_classes=[SuperUserPermission])
     def post(self, request, *args, **kwargs):
-        title = request.data.get('title')
-        content = request.data.get('content')
-        front_image = request.data.get('front_image')
-        discretion = request.data.get('discretion')
-        type = request.data.get('type')
-        if not all([title, content, discretion]):
-            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
-        news = News.objects.create(title=title, content=content, front_image=front_image, discretion=discretion,type = type)
-        serializer = NewsSerializer(news)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = NewsSerializer(data=request.data,partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['put'], detail=False, permission_classes=[SuperUserPermission])
     def delete(self, request, *args, **kwargs):
