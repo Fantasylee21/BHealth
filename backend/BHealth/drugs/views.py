@@ -65,7 +65,11 @@ class DrugView(GenericViewSet):
     def delet_by_diagnosis(self, request, *args, **kwargs):
         userid = request.data.get('userid')
         patient = User.objects.get(id=userid)
-        diagnosis = Diagnosis.objects.filter(patient=patient, is_taken=False).order_by('-create_time').first().content
+        d = Diagnosis.objects.filter(patient=patient, is_taken=False).order_by('-create_time').first()
+        # print(d.create_time)
+        if not d:
+            return Response({'error': '没有未取药的诊断'}, status=status.HTTP_400_BAD_REQUEST)
+        diagnosis = d.content
         # a = type(diagnosis)
         diagnosis = json.loads(diagnosis.replace("'", '"'))
         takenDrugs = diagnosis['takenDrugs']
@@ -84,4 +88,6 @@ class DrugView(GenericViewSet):
             drug.stock -= takendrug[1]
             drug.save()
             account += drug.price * takendrug[1]
+        d.is_taken = True
+        d.save()
         return Response({'account': account}, status=status.HTTP_200_OK)
