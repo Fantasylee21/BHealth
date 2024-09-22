@@ -74,6 +74,14 @@ class NewsView(GenericViewSet):
         serializer = NewsSerializer(news)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def get_by_type(self, request, *args, **kwargs):
+        type = request.GET.get('type')
+        if not type:
+            return Response({'error': '缺少type参数'}, status=400)
+        news = News.objects.filter(type=type)
+        serializer = NewsSerializer(news, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class AiViewSet(viewsets.ModelViewSet):
     def ask(self, request, *args, **kwargs):
