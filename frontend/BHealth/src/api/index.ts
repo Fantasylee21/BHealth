@@ -118,5 +118,26 @@ export default {
 		}
 	},
 
+	uploadNews: async function (formData: FormData) {
+    try {
+        const isSuccess = (await api.post(`news/news/`, formData, {
+            headers: {
+                // 'Content-Type' 不需要显式设置，浏览器会自动处理
+                Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+            },
+        })).status === 201;
 
+        if (isSuccess) {
+            ElMessage.success('上传成功');
+            setTimeout(() => {
+                UtilMethods.jump('/news');
+            }, 500);
+        } else {
+            ElMessage.error('上传失败');
+        }
+    } catch (error) {
+        console.log(`output->error`, error);
+        ElMessage.error(error.response?.data?.error || '上传过程中出错');
+    }
+}
 }

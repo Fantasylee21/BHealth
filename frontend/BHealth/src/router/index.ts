@@ -4,6 +4,7 @@ const MainStaging = () => import('@/views/MainStaging.vue')
 const NewsBoard = () => import('@/views/NewsBoard.vue')
 const RegisterNumber = () => import('@/views/RegisterNumber.vue')
 const LoginRegister = () => import('@/views/LoginRegister.vue')
+const EditNews = () => import('@/views/EditNews.vue')
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -30,6 +31,11 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'RegisterNumber',
 		component: RegisterNumber,
 	},
+	{
+		path: '/editor',
+		name: 'Editor',
+		component: EditNews,
+	}
 ]
 
 const router = createRouter({

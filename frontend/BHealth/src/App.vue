@@ -10,7 +10,7 @@
                 <GlobalSidebar @toggleCollapse="toggleCollapse" />
             </el-aside>
             <el-main class="main-content">
-                <router-view />
+                <router-view :key="$route.fullPath"></router-view>
             </el-main>
         </el-container>
     </div>
