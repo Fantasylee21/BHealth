@@ -49,6 +49,7 @@ export default {
 
 h2 {
   margin: 0;
+  font-size: 24px;
 }
 
 p {
