@@ -43,7 +43,8 @@ class NewsView(GenericViewSet):
 
     def get(self, request, *args, **kwargs):
         news = News.objects.all()
-        return Response(NewsSerializer(news, many=True,context={'request': request}).data, status=status.HTTP_200_OK)
+        serializer = NewsSerializer(news, many=True, context={'request': request})
+        return Response({"results":serializer.data}, status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=False, permission_classes=[SuperUserPermission])
     def post(self, request, *args, **kwargs):
