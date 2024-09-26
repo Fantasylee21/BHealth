@@ -1,7 +1,7 @@
 <template>
     <div class="newsBoard">
         <div class="banner">
-            <img src="@/assets/slide1.png" class="img" alt="" @click="imgJump">
+            <img :src="firstImg" class="img" alt="" @click="imgJump">
             <div v-for="(title,titleIndex) in titles" :key="titleIndex"  class="content">
                 <transition name="scale">
                     <div v-show="imgIndex===titleIndex" >
@@ -22,58 +22,81 @@
         </div>
         <div class="bottom">
           <div class="selector">
+            <div class="allNews" @click="clickAll()">全部新闻</div>
             <div class="today" @click="clickToday()">今日发布</div>
             <div class="favor" @click="clickFavor()">医院精选</div>
           </div>
           <div class="AllLittleNews">
-            <LittleNewsBoard class="LittleNewsBoard" v-for="(item,index) in allNews" :key="index" :imgPath="item.imgPath" :title="item.title" :description="item.description"/>
+            <LittleNewsBoard class="LittleNewsBoard"
+              v-for="(item,index) in allNews"
+              :key="index"
+              :imgPath="item.front_image"
+              :title="item.title"
+              :description="item.discretion"
+              @click="jumpToNewsDetail(item.id)"
+            />
           </div>
         </div>
     </div>
 </template>
 <script setup>
 import {onMounted, onUnmounted, ref} from 'vue'
-import { ArrowLeftBold, ArrowRightBold } from '@element-plus/icons';
+import {ArrowLeftBold, ArrowRightBold} from '@element-plus/icons';
 import router from "@/router/index.ts";
 import LittleNewsBoard from "@/components/NewsBoard/LittleNewsBoard.vue";
+import api from "@/api/index.ts";
 
 const imgIndex = ref(0)
-const imgArr = [
-  'src/assets/slide1.png',
-  'src/assets/slide2.png',
-  'src/assets/slide1.png',
-]
-const titles = [
-    '原神','启动','原神'
-]
+const imgArr = ref([]);
+const titles = ref([]);
+const firstImg = ref('')
+const allNews = ref([])
 const next = (e) => {
     let currentImg = document.querySelector('.img');
     e>0? imgIndex.value+=1 : imgIndex.value-=1
-    if(imgIndex.value >= imgArr.length ) {
+    if(imgIndex.value >= imgArr.value.length ) {
         imgIndex.value=0
     }
     if(imgIndex.value <0 ) {
-        imgIndex.value=imgArr.length-1
+        imgIndex.value=imgArr.value.length-1
     }
     currentImg.style.opacity = '0'
     console.log('------', currentImg.src)
     setTimeout(() => {
-        currentImg.src= imgArr[imgIndex.value]
+        currentImg.src= imgArr.value[imgIndex.value]
         currentImg.style.opacity = '1';
     },300)
+
+    resetAutoPlay();
 }
 
 //设置自动播放
-let autoPlayId
+let autoPlayId;
+let delay = 5000;
+
+// 自动播放函数
 function autoPlay() {
-    next(1)
+    next(1);
+}
+
+function startAutoPlay() {
+    autoPlayId = setInterval(() => {
+        autoPlay();
+    }, delay);
+}
+
+// 清除并重新启动自动播放
+function resetAutoPlay() {
+    // 清除现有的定时器
+    clearInterval(autoPlayId);
+    // 重新启动自动播放
+    startAutoPlay();
 }
 
 onMounted(() => {
-    autoPlayId = setInterval(() => {
-        autoPlay()
-    }, 5000)
-})
+    getAllNews();
+    startAutoPlay();
+});
 
 onUnmounted(() => {
     clearInterval(autoPlayId)
@@ -83,39 +106,32 @@ onUnmounted(() => {
 const imgJump = () => {
     router.push({path: '/news'})
 }
-const allNews = ref ([
-  {
-    imgPath: 'src/assets/slide1.png',
-    title: "原神",
-    description: '原神是一款开放世界冒险游戏，由中国游戏公司miHoYo开发。游戏于2020年9月28日正式发布，支持Windows、PlayStation 4、iOS和Android平台。'
-  },
-  {
-    imgPath: 'src/assets/slide2.png',
-    title: "启动",
-    description: '启动是一款开放世界冒险游戏，由中国游戏公司miHoYo开发。游戏于2020年9月28日正式发布，支持Windows、PlayStation 4、iOS和Android平台。'
-  },
-  {
-    imgPath: 'src/assets/slide1.png',
-    title: "原神",
-    description: '原神是一款开放世界冒险游戏，由中国游戏公司miHoYo开发。游戏于2020年9月28日正式发布，支持Windows、PlayStation 4、iOS和Android平台。'
-  },
-  {
-    imgPath: 'src/assets/slide2.png',
-    title: "启动",
-    description: '启动是一款开放世界冒险游戏，由中国游戏公司miHoYo开发。游戏于2020年9月28日正式发布，支持Windows、PlayStation 4、iOS和Android平台。'
-  },
-  {
-    imgPath: 'src/assets/slide1.png',
-    title: "原神",
-    description: '原神是一款开放世界冒险游戏，由中国游戏公司miHoYo开发。游戏于2020年9月28日正式发布，支持Windows、PlayStation 4、iOS和Android平台。'
+
+const getNewsByType = async (type) => {
+  allNews.value = await api.getNewsByType({type})
+}
+
+const getAllNews = async () => {
+  try {
+    const res = await api.getAllNews();
+    firstImg.value = res.results[0].front_image;
+    allNews.value = res.results;
+    for (let i = 0; i < 3; i++) {
+      imgArr.value.push(res.results[i].front_image);
+      titles.value.push(res.results[i].title);
+    }
+  } catch (error) {
+    console.error("Error fetching news:", error);
   }
-])
+};
 
 const clickToday = () => {
   console.log('今日发布')
 //   激活今日发布
   document.querySelector('.today').classList.add('active')
   document.querySelector('.favor').classList.remove('active')
+  document.querySelector('.allNews').classList.remove('active')
+  getNewsByType('today')
 }
 
 const clickFavor = () => {
@@ -123,6 +139,28 @@ const clickFavor = () => {
 //   激活医院精选
   document.querySelector('.favor').classList.add('active')
   document.querySelector('.today').classList.remove('active')
+  document.querySelector('.allNews').classList.remove('active')
+  getNewsByType('favor')
+}
+
+const clickAll = () => {
+  console.log('全部新闻')
+//   激活全部新闻
+  document.querySelector('.allNews').classList.add('active')
+  document.querySelector('.favor').classList.remove('active')
+  document.querySelector('.today').classList.remove('active')
+  getNewsByType('all')
+  console.log('allNews +++++++++++', allNews)
+}
+
+const getNewsById = async (id) => {
+  const res = await api.getNewsById({id})
+  console.log('res', res)
+}
+
+const jumpToNewsDetail = (id) => {
+  getNewsById(id)
+  router.push({path: '/newsDetail/' + id})
 }
 
 </script>
@@ -274,7 +312,7 @@ const clickFavor = () => {
       display: flex;
       align-items: center;
       margin: 0 auto;
-      .today, .favor {
+      .today, .favor, .allNews{
         width: 200px;
         height: 100%;
         display: flex;
@@ -287,14 +325,18 @@ const clickFavor = () => {
         color: #666666;
         margin-left: 30px;
       }
+      .today {
+        margin-left: 60px;
+      }
       .favor {
         margin-left: 60px;
       }
-      .favor:not(.active):hover, .today:not(.active):hover {
+
+      .favor:not(.active):hover, .today:not(.active):hover , .allNews:not(.active):hover{
         color: #000000;
         background-color: #ffffff;
       }
-      .favor.active, .today.active {
+      .favor.active, .today.active, .allNews.active {
         color: #ffffff;
         background-color: #404ada;
       }

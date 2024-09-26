@@ -7,6 +7,10 @@ const LoginRegister = () => import('@/views/LoginRegister.vue')
 
 const routes: Array<RouteRecordRaw> = [
 	{
+		path: '/',
+		redirect: '/loginRegister',
+	},
+	{
 		path: '/loginRegister',
 		name: 'LoginRegister',
 		component: LoginRegister,
@@ -31,11 +35,27 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
 	history: createWebHistory(),
 	routes,
-})
+});
+
+function isUserLoggedIn() {
+	return sessionStorage.getItem('token') !== null
+}
 
 router.beforeEach((to, from, next) => {
-	sessionStorage.setItem('preRoute', to.path)
-	next()
+	if (to.path === '/loginRegister') {
+		if (isUserLoggedIn()) {
+		  next({ path: '/staging' });
+		} else {
+		  next();
+		}
+	} else {
+		if (!isUserLoggedIn()) {
+		  next({ path: '/loginRegister' });
+		} else {
+		  next();
+		}
+	}
+
 })
 
 export default router

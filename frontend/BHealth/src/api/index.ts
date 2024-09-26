@@ -52,7 +52,7 @@ export default {
     	console.log(`output->params`, params)
 		try {
 			const user = await api.post(`users/login/`, params)
-			localStorage.setItem('token', user.data.token)
+			sessionStorage.setItem('token', user.data.token)
 			return user.data
 		} catch (error: any) {
 			console.log(`output->error`, error)
@@ -70,5 +70,53 @@ export default {
 			console.log(`output->error`, error)
 			ElMessage.error(error.response.data.error)
 		}
-	}
+	},
+
+	getAllNews: async function () {
+		try {
+			const res = await api.get(`news/news/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	getNewsByType: async function (params: { type: string }) {
+		console.log(`output->params`, params.type)
+		try {
+			const res = await api.get(`/news/special/?type=${params.type}`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	getNewsById: async function (params: { id: string }) {
+		try {
+			const res = await api.get(`/news/news/${params.id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+
 }
