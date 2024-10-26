@@ -97,8 +97,8 @@ function saveChanges() {
 
 <style scoped>
 .user-profile {
-  width: 500px;
-  padding: 100px;
+  width: 1100px;
+  padding: 120px;
   margin: 0 auto;
   background-color: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
