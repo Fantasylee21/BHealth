@@ -51,6 +51,12 @@
             </el-icon>
             <template #title>Navigator Four</template>
         </el-menu-item>
+      <el-menu-item index="/individualCenter">
+          <el-icon>
+             <UserFilled />
+          </el-icon>
+        <template #title>Navigator Five</template>
+      </el-menu-item>
     </el-menu>
 </template>
 
@@ -63,6 +69,7 @@ import {
     Setting,
 } from '@element-plus/icons-vue';
 import {ArrowLeft, ArrowRight} from '@element-plus/icons-vue';
+import {UserFilled} from "@element-plus/icons";
 
 const isCollapse = ref(true);
 const handleOpen = (key: string, keyPath: string[]) => {
