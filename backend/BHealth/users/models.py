@@ -11,7 +11,6 @@ class WorkSchedule(models.Model):
     doctor = models.ForeignKey('User', on_delete=models.CASCADE, related_name='doctor')
 
 
-
 class User(AbstractUser):
     """用户模型类"""
     # 增加mobile字段
@@ -29,6 +28,14 @@ class User(AbstractUser):
     )
     type = models.CharField(max_length=20, choices=Types, default='patient')
     category = models.CharField(max_length=20, verbose_name='科室类别', default='normal')
+    #学历
+    education = models.CharField(max_length=20, verbose_name='学历', default='本科')
+    #职称
+    title = models.CharField(max_length=20, verbose_name='职称', default='医生')
+    # 开始工作时间
+    work_time = models.DateTimeField(verbose_name='开始工作时间', default=datetime.datetime.now)
+    # 毕业院校
+    school = models.CharField(max_length=20, verbose_name='毕业院校', default='清华大学')
 
     class Meta:
         db_table = 'users'

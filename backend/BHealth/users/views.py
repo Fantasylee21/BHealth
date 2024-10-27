@@ -284,6 +284,10 @@ class UserView(GenericViewSet):
         type = request.data.get('type')
         category = request.data.get('category')
         introduction = request.data.get('introduction')
+        education = request.data.get('education')
+        title = request.data.get('title')
+        work_time = request.data.get('work_time')
+        school = request.data.get('school')
 
         if username:
             user.username = username
@@ -295,6 +299,14 @@ class UserView(GenericViewSet):
             user.category = category
         if introduction:
             user.introduction = introduction
+        if education:
+            user.education = education
+        if title:
+            user.title = title
+        if work_time:
+            user.work_time = work_time
+        if school:
+            user.school = school
         user.save()
         serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

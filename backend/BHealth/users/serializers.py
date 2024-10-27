@@ -28,8 +28,8 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar', 'introduction', 'create_time',
-                  'update_time', 'category', 'workSchedule', 'appointment']
+        # fields = '__all__'
+        exclude = ['password', 'is_delete', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'last_login',]
 
     def get_workSchedule(self, obj):
         nowTime = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -58,8 +58,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar', 'introduction', 'create_time',
-                  'update_time', 'diagnosis', 'type', 'appointment']
+        # fields = '__all__'
+        read_only_fields = ['create_time', 'update_time', ]
+        exclude = ['password', 'is_delete', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'last_login', ]
 
     def get_appointment(self, obj):
         appointment = Appointment.objects.filter(user=obj)
