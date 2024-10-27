@@ -1,8 +1,10 @@
 import re
 from datetime import datetime
 
+from django.contrib.admin import filters
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -137,19 +139,26 @@ class AvatarView(GenericViewSet):
         return Response({"url": serializer.data['avatar']}, status=status.HTTP_200_OK)
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10  # 设置每页显示的记录数为10
+    page_size_query_param = 'page_size'  # 允许通过查询参数来控制每页的记录数
+    max_page_size = 100  # 设置最大页大小，防止过大的请求
+
+
 class DoctorView(GenericViewSet):
     queryset = User.objects.all()
     serializer_class = DoctorSerializer
     permission_classes = [IsAuthenticated, UserPermission]
+    pagination_class = StandardResultsSetPagination  # 使用上面定义的分页类
 
+    #页的大小变为10
     def get(self, request, *args, **kwargs):
-        doctors = User.objects.filter(type='doctor')
-        # doctors = User.objects.all()
-        page = self.paginate_queryset(doctors)
+        queryset = User.objects.filter(type='doctor').order_by('id')
+        page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = DoctorSerializer(page, many=True, context={'request': request})
+            serializer = self.get_serializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
-        serializer = DoctorSerializer(doctors, many=True, context={'request': request})
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_single_doctor(self, request, *args, **kwargs):
