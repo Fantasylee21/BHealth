@@ -49,12 +49,12 @@
         <tbody>
           <tr v-for="(row, index) in paginatedData" :key="index">
             <td>{{ index + 1 }}</td>
-            <td>{{ row.name }}</td>
+            <td>{{ row.username }}</td>
             <td>{{ row.education }}</td>
-            <td>{{ row.workTime }}</td>
+            <td>{{ row.date_joined }}</td>
             <td>{{ row.school }}</td>
             <td>{{ row.title }}</td>
-            <td>{{ row.department }}</td>
+            <td>{{ row.category }}</td>
             <td>{{ row.introduction }}</td>
             <td>
               <el-button @click="editRow(row)" type="success" size="small">放号</el-button>
@@ -80,6 +80,15 @@
       <el-form-item label="放号数量" :label-width="formLabelWidth" >
         <el-input v-model="form.count" autocomplete="off" placeholder="请输入" type="number"/>
       </el-form-item>
+      <el-form-item label="放号日期" :label-width="formLabelWidth">
+        <el-date-picker
+          v-model="form.date"
+          type="date"
+          placeholder="选择日期"
+          style="width: 100%;"
+          :disabled-date="disabledDate"
+        />
+      </el-form-item>
       <el-form-item label="放号时间" :label-width="formLabelWidth">
         <el-time-select
           v-model="form.startTime"
@@ -100,14 +109,23 @@
     </template>
   </el-dialog >
   <el-dialog v-model="dialogFormVisible1" title="挂号" width="500px">
-    <el-form :model="registerData">
+    <el-form :model="registerData.date">
+      <el-form-item label="预约日期" :label-width="formLabelWidth">
+        <el-date-picker
+          v-model="registerData.date"
+          type="date"
+          placeholder="选择日期"
+          style="width: 100%;"
+          :disabled-date="disabledDate"
+        />
+      </el-form-item>
       <el-form-item label="预约时间" :label-width="formLabelWidth">
         <el-time-select
           v-model="registerData.doctorStartTime"
           start="08:30"
           step="00:30"
           end="18:30"
-          placeholder="请选择放号时间段"
+          placeholder="请选择预约时间段"
         />
       </el-form-item>
     </el-form>
@@ -157,9 +175,10 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, reactive} from 'vue';
-import { Search } from '@element-plus/icons'
+import {computed, onMounted, reactive, ref} from 'vue';
+import {Search} from '@element-plus/icons'
 import {ElLoading, ElMessage} from "element-plus";
+import api from "@/api";
 
 const searchValue = ref('');
 const department = ref('全部');
@@ -167,18 +186,18 @@ const currentPage = ref(1);
 const perPage = ref(10); // 每页显示的行数
 const inputPage = ref(1); // 输入跳转页码的绑定值
 const tableData = ref([
-  {name : '张三', education : '本科', workTime : '2010-09-01', school : '清华大学', title : '主任医师', department : '内科', introduction : '擅长治疗感冒'},
-  {name : '李四', education : '硕士', workTime : '2012-09-01', school : '北京大学', title : '副主任医师', department : '外科', introduction : '擅长治疗骨折'},
-  {name : '王五', education : '博士', workTime : '2015-09-01', school : '复旦大学', title : '主治医师', department : '妇产科', introduction : '擅长治疗妇科疾病'},
-  {name : '赵六', education : '本科', workTime : '2018-09-01', school : '上海交通大学', title : '住院医师', department : '儿科', introduction : '擅长治疗儿童感冒'},
-  {name : '钱七', education : '硕士', workTime : '2020-09-01', school : '南京大学', title : '主任医师', department : '皮肤科', introduction : '擅长治疗皮肤病'},
-  {name : '孙八', education : '博士', workTime : '2021-09-01', school : '浙江大学', title : '主治医师', department : '耳鼻喉科', introduction : '擅长治疗耳鼻喉疾病'},
-  {name : '周九', education : '本科', workTime : '2019-09-01', school : '武汉大学', title : '住院医师', department : '口腔科', introduction : '擅长治疗口腔疾病'},
-  {name : '吴十', education : '硕士', workTime : '2017-09-01', school : '中山大学', title : '主任医师', department : '骨科', introduction : '擅长治疗骨折'},
-  {name : '郑十一', education : '博士', workTime : '2016-09-01', school : '华中科技大学', title : '主治医师', department : '神经科', introduction : '擅长治疗神经疾病'},
-  {name : '马十二', education : '本科', workTime : '2014-09-01', school : '华南理工大学', title : '住院医师', department : '心血管科', introduction : '擅长治疗心血管疾病'},
-  {name : '陈十三', education : '硕士', workTime : '2013-09-01', school : '四川大学', title : '主任医师', department : '肿瘤科', introduction : '擅长治疗肿瘤'},
-  {name : '林十四', education : '博士', workTime : '2011-09-01', school : '西安交通大学', title : '主治医师', department : '消化科', introduction : '擅长治疗消化系统疾病'},
+  // {name : '张三', education : '本科', workTime : '2010-09-01', school : '清华大学', title : '主任医师', department : '内科', introduction : '擅长治疗感冒'},
+  // {name : '李四', education : '硕士', workTime : '2012-09-01', school : '北京大学', title : '副主任医师', department : '外科', introduction : '擅长治疗骨折'},
+  // {name : '王五', education : '博士', workTime : '2015-09-01', school : '复旦大学', title : '主治医师', department : '妇产科', introduction : '擅长治疗妇科疾病'},
+  // {name : '赵六', education : '本科', workTime : '2018-09-01', school : '上海交通大学', title : '住院医师', department : '儿科', introduction : '擅长治疗儿童感冒'},
+  // {name : '钱七', education : '硕士', workTime : '2020-09-01', school : '南京大学', title : '主任医师', department : '皮肤科', introduction : '擅长治疗皮肤病'},
+  // {name : '孙八', education : '博士', workTime : '2021-09-01', school : '浙江大学', title : '主治医师', department : '耳鼻喉科', introduction : '擅长治疗耳鼻喉疾病'},
+  // {name : '周九', education : '本科', workTime : '2019-09-01', school : '武汉大学', title : '住院医师', department : '口腔科', introduction : '擅长治疗口腔疾病'},
+  // {name : '吴十', education : '硕士', workTime : '2017-09-01', school : '中山大学', title : '主任医师', department : '骨科', introduction : '擅长治疗骨折'},
+  // {name : '郑十一', education : '博士', workTime : '2016-09-01', school : '华中科技大学', title : '主治医师', department : '神经科', introduction : '擅长治疗神经疾病'},
+  // {name : '马十二', education : '本科', workTime : '2014-09-01', school : '华南理工大学', title : '住院医师', department : '心血管科', introduction : '擅长治疗心血管疾病'},
+  // {name : '陈十三', education : '硕士', workTime : '2013-09-01', school : '四川大学', title : '主任医师', department : '肿瘤科', introduction : '擅长治疗肿瘤'},
+  // {name : '林十四', education : '博士', workTime : '2011-09-01', school : '西安交通大学', title : '主治医师', department : '消化科', introduction : '擅长治疗消化系统疾病'},
 ]);
 const allDepartment = ref(['全部', '内科', '外科', '妇产科', '儿科', '皮肤科','耳鼻喉科','口腔科','骨科','神经科','心血管科','肿瘤科','消化科']);
 const dialogFormVisible = ref(false);
@@ -190,8 +209,59 @@ const description = ref('');
 const formLabelWidth = '140px'
 // 计算总页数
 const totalPages = computed(() => Math.ceil(tableData.value.length / perPage.value));
+
+const getDoctor = async (page : number) => {
+  try {
+    const res = await api.getAllDoctor({page});
+    tableData.value = res.results;
+    tableData.value.forEach((item) => {
+      item.date_joined = formatTime(item.date_joined);
+    });
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const formatTime = (time : string ) => {
+  const date = new Date(time);
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+onMounted(() => {
+  getDoctor(1);
+})
+
+const delDoctor = async (id : string) => {
+  try {
+    await api.delDoctor({id});
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const searchDoctor = async (name : string, category: string, content: string) => {
+  try {
+    const res = await api.searchDoctor({name, category, content});
+    tableData.value.forEach((item) => {
+      item.date_joined = formatTime(item.date_joined);
+    });
+    tableData.value = res;
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const workSchedule = async (doctor_id: number, from_time : string, end_time : string, num : number) => {
+  try {
+    await api.workSchedule({doctor_id, from_time, end_time, num});
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 const form = reactive({
   count: 0,
+  date: '',
   startTime: '',
 })
 const registerData = reactive({
@@ -199,6 +269,7 @@ const registerData = reactive({
   doctorName: '',
   doctorId: '',
   doctorStartTime: '',
+  date: '',
 })
 // 计算当前页的数据
 const paginatedData = computed(() => {
@@ -212,6 +283,7 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
+  getDoctor(currentPage.value);
 };
 
 // 上一页
@@ -219,6 +291,7 @@ const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
+  getDoctor(currentPage.value);
 };
 
 // 跳转到指定页
@@ -228,47 +301,102 @@ const jumpToPage = () => {
   } else {
     inputPage.value = currentPage.value;
   }
+  getDoctor(currentPage.value);
 };
 
+const clickDoctorId = ref(0);
 const editRow = (row) => {
   console.log('放号', row);
+  clickDoctorId.value = row.id;
   dialogFormVisible.value = true;
 };
 
 const deleteRow = (row) => {
   // 删除当前行
+  delDoctor(row.id);
   tableData.value = tableData.value.filter(item => item !== row);
   if (tableData.value.length % perPage.value === 0 && currentPage.value > 1) {
     currentPage.value--;
   }
   console.log('删除', row);
-  ElMessage.success('删除成功');
 };
 
 const searchByName = () => {
   console.log('搜索', searchValue.value);
+  searchDoctor(searchValue.value, department.value, '');
 };
 
 const submitNumber = () => {
   console.log('提交', form);
   dialogFormVisible.value = false;
-  ElMessage.success('放号成功');
+  if (form.startTime === '') {
+    ElMessage.error('请填写完整信息');
+    return;
+  } else if (form.count < 1 ) {
+    ElMessage.error('放号数量不能小于1')
+    return;
+  } else if (form.count > 10) {
+    ElMessage.error('放号数量不能大于10,医生忙不过来了！！！')
+    return;
+  }
+  else {
+    const date = new Date(form.date);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const sTime = form.startTime;
+    const eTime = `${parseInt(sTime.split(':')[0]) + 1}:${sTime.split(':')[1]}`;
+    const startTime = `${year}-${month}-${day} ${sTime}`;
+    const endTime = `${year}-${month}-${day} ${eTime}`;
+    console.log('提交', startTime, endTime);
+    workSchedule(clickDoctorId.value, startTime, endTime, form.count);
+  }
 };
 
 const register = (row) => {
   console.log('挂号', row);
+  clickDoctorId.value = row.id;
   dialogFormVisible1.value = true;
-  //传入拿到剩余人数,是否可以挂号
-  //TODO
+  registerData.doctorDepartment = row.category;
+  registerData.doctorName = row.username;
+  registerData.doctorId = row.id;
 };
+
+const disabledDate = (time: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // 计算未来7天的日期
+  const sevenDaysLater = new Date();
+  sevenDaysLater.setDate(today.getDate() + 7);
+  sevenDaysLater.setHours(0, 0, 0, 0);
+  return time.getTime() < today.getTime() || time.getTime() > sevenDaysLater.getTime();
+};
+
+const appointDoctor = async (doctor_id: number, from_time : string, end_time : string) => {
+  try {
+    await api.appointDoctor({doctor_id, from_time, end_time});
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 const submitRegister = () => {
   console.log('提交挂号');
   dialogFormVisible1.value = false;
-  if (canRegister.value) {
-    ElMessage.success('挂号成功');
+  if (registerData.doctorStartTime === '') {
+    ElMessage.error('请填写完整信息');
+    return;
   } else {
-    ElMessage.error('挂号失败: 该医生无空闲号源');
+    const date = new Date(registerData.date);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const sTime = registerData.doctorStartTime;
+    const eTime = `${parseInt(sTime.split(':')[0]) + 1}:${sTime.split(':')[1]}`;
+    const startTime = `${year}-${month}-${day} ${sTime}`;
+    const endTime = `${year}-${month}-${day} ${eTime}`;
+    console.log('提交', startTime, endTime);
+    appointDoctor(clickDoctorId.value, startTime, endTime);
   }
 };
 

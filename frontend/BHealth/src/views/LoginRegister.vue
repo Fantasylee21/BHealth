@@ -42,7 +42,7 @@
                     />
                     <button class="form_button button submit">SIGN UP</button>
                 </form>
-              <button @click="sendEmailCode" class="sendCode">SEND</button>
+              <button @click="sendEmailCode" class="sendCode">{{sendValue}}</button>
             </div>
 
             <div class="container b-container" id="b-container">
@@ -190,6 +190,7 @@ const changeForm = () => {
     isSignInVisible.value = !isSignInVisible.value
 }
 
+const sendValue = ref('SEND')
 const sendEmailCode = async () => {
     if (!signupForm.value.email) {
         ElMessage.error('请输入邮箱')
@@ -199,6 +200,21 @@ const sendEmailCode = async () => {
         email: signupForm.value.email
     }
     await api.sendCode(params)
+    const sendCode: any = document.querySelector('.sendCode')
+    sendCode.disabled = true
+    let count = 300
+    sendValue.value = count + 's'
+    const timer = setInterval(() => {
+        count--
+        sendValue.value = count + 's'
+        if (count === 0) {
+            clearInterval(timer)
+            sendValue.value = 'SEND'
+        }
+    }, 1000)
+    setTimeout(() => {
+        sendCode.disabled = false
+    }, 300000)
 }
 </script>
 
