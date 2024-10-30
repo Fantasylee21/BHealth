@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 
 from django.contrib.admin import filters
+from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render
 from rest_framework.pagination import PageNumberPagination
@@ -41,17 +42,20 @@ class RigisterView(APIView):
         password = request.data.get('password')
         code = request.data.get('code')
         type = request.data.get('type')
-        try:
-            try:
-                tmp = EmailVerifyRecord.objects.get(email=email)
-            except MultipleObjectsReturned:
-                # 处理多个结果的情况
-                tmps = EmailVerifyRecord.objects.filter(email=email)
-                # 例如，选择最新的记录
-                tmp = tmps.order_by('-send_time').first()
-        except EmailVerifyRecord.DoesNotExist:
-            return Response({"error": "验证码不存在"}, status=status.HTTP_400_BAD_REQUEST)
-        if tmp.code != code:
+        # try:
+        #     try:
+        #         tmp = EmailVerifyRecord.objects.get(email=email)
+        #     except MultipleObjectsReturned:
+        #         # 处理多个结果的情况
+        #         tmps = EmailVerifyRecord.objects.filter(email=email)
+        #         # 例如，选择最新的记录
+        #         tmp = tmps.order_by('-send_time').first()
+        # except EmailVerifyRecord.DoesNotExist:
+        #     return Response({"error": "验证码不存在"}, status=status.HTTP_400_BAD_REQUEST)
+        cache_key = f'verification_code:{email}'
+        saved_code = cache.get(cache_key)
+
+        if saved_code != code:
             return Response({"error": "验证码错误"}, status=status.HTTP_400_BAD_REQUEST)
         if not all([username, email, password, code]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,7 +64,7 @@ class RigisterView(APIView):
             return Response({"error": "用户邮箱已注册"}, status=status.HTTP_400_BAD_REQUEST)
         if re.search(r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$', email) is None:
             return Response({"error": "邮箱格式错误"}, status=status.HTTP_400_BAD_REQUEST)
-        tmp.delete()
+        # tmp.delete()
         user = User.objects.create_user(username=username, email=email, password=password, type=type)
         result = {
             "username": user.username,
