@@ -5,7 +5,16 @@
 </template>
 
 <script setup lang="ts">
+import api from "@/api";
+import {onMounted} from "vue";
 
+const getSelfInfo = async () => {
+    await api.getSelfInfo();
+}
+
+onMounted(() => {
+    getSelfInfo();
+})
 </script>
 
 <style scoped>

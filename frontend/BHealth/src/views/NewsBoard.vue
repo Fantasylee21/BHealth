@@ -1,7 +1,7 @@
 <template>
     <div class="newsBoard">
         <div class="banner">
-            <img :src="firstImg" class="img" alt="" @click="imgJump">
+            <img :src="firstImg" class="img" alt="" @click="imgJump(imgIndex+1)">
             <div v-for="(title,titleIndex) in titles" :key="titleIndex"  class="content">
                 <transition name="scale">
                     <div v-show="imgIndex===titleIndex" >
@@ -103,8 +103,8 @@ onUnmounted(() => {
 })
 
 //点击图片跳转对应网页
-const imgJump = () => {
-    router.push({path: '/news'})
+const imgJump = (id) => {
+    router.push(`/newsDetail/${id}`)
 }
 
 const getNewsByType = async (type) => {
@@ -160,7 +160,7 @@ const getNewsById = async (id) => {
 
 const jumpToNewsDetail = (id) => {
   getNewsById(id)
-  router.push({path: '/newsDetail/' + id})
+  router.push(`/newsDetail/${id}`)
 }
 
 </script>

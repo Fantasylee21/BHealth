@@ -35,7 +35,6 @@ export default {
 					password: params.password,
 				})
 				if (ret) {
-					profile.updateProfile(ret);
 					ElMessage.success('登录成功')
 					setTimeout(() => {
 						UtilMethods.jump('/staging')
@@ -239,6 +238,37 @@ export default {
 					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
 				}
 			})
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	getSelfInfo : async function () {
+		try {
+			const res = await api.get(`users/self/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			profile.updateProfile(res.data);
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	getNewsDetail : async function(params: { id: string }) {
+		try {
+			const res = await api.get(`news/news/${params.id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
 			return res.data;
 		} catch (error: any) {
 			console.log(`output->error`, error)
