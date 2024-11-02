@@ -28,7 +28,7 @@
     </nav>
   </div>
   <div class="rightbox">
-    <div class="profile" :class="{ 'noshow': activeTab !== 'profile' }">
+    <div class="profile" :class="{ 'noshow': activeTab !== 'profile' }" >
       <h1>个人信息</h1>
       <h2>姓名</h2>
       <p>{{userName}}</p>
@@ -148,20 +148,18 @@ const nameInputDisabled = ref<boolean>(true);
 const introductionInputDisabled = ref<boolean>(true);
 const emailInputDisabled = ref<boolean>(true);
 
-const uploadAvatar = async (file) => {
+const uploadAvatar = async (file: File) => {
   const user_id = profile.id.toString();
   const formData = new FormData();
-  formData.append('avatar', file);
+  formData.append('avatar', file); // 直接将 file 添加到 FormData 中
 
   try {
-    await api.uploadAvatar({formData, user_id});
-    avatarSrc.value = URL.createObjectURL(file);
-    ElMessage.success('头像上传成功');
+    await api.uploadAvatar({ formData, user_id });
+    avatarSrc.value = URL.createObjectURL(file); // 预览上传的头像
   } catch (error) {
     ElMessage.error('头像上传失败');
   }
 };
-
 
 const beforeUpload = (file : File) => {
   const isImage = file.type.startsWith('image/');
@@ -358,7 +356,7 @@ input {
 }
 
 .noshow {
-  opacity: 0;
+  display: none;
 }
 
 footer {
