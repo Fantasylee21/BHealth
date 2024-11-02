@@ -6,8 +6,9 @@ from users.models import User, Diagnosis, WorkSchedule, Appointment
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    doctor = serializers.CharField(source='doctor.username')
-    user = serializers.CharField(source='user.username')
+    # 返回医生与患者的id而不是用户名
+    user = serializers.IntegerField(source='user.id')
+    doctor = serializers.IntegerField(source='doctor.id')
 
     class Meta:
         model = Appointment
@@ -15,7 +16,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class WorkScheduleSerializer(serializers.ModelSerializer):
-    doctor = serializers.CharField(source='doctor.username')
+    doctor = serializers.IntegerField(source='doctor.id')
 
     class Meta:
         model = WorkSchedule
@@ -29,7 +30,7 @@ class DoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # fields = '__all__'
-        exclude = ['password', 'is_delete', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'last_login',]
+        exclude = ['password', 'is_delete', 'is_staff', 'groups', 'user_permissions', 'last_login', ]
 
     def get_workSchedule(self, obj):
         nowTime = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -38,14 +39,15 @@ class DoctorSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_appointment(self, obj):
-        # nowTime = datetime.now().strftime("%Y-%m-%d %H:%M")
-        appointment = Appointment.objects.filter(doctor=obj)
+        # nowTime = datetime.now()
+        now_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        appointment = Appointment.objects.filter(doctor=obj).filter(from_time__gte=now_time)
         serializer = AppointmentSerializer(appointment, many=True)
         return serializer.data
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
-    doctor = serializers.CharField(source='doctor.username')
+    doctor = serializers.IntegerField(source='doctor.id')
 
     class Meta:
         model = Diagnosis
@@ -53,16 +55,22 @@ class DiagnosisSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    diagnosis = DiagnosisSerializer(many=True, read_only=True)
+    diagnosis = serializers.SerializerMethodField()
     appointment = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         # fields = '__all__'
-        read_only_fields = ['create_time', 'update_time', ]
-        exclude = ['password', 'is_delete', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'last_login', ]
+        # read_only_fields = ['create_time', 'update_time', ]
+        exclude = ['password', 'is_delete', 'is_staff', 'groups', 'user_permissions', 'last_login', ]
 
+    # 结果按照时间从近到远排序
     def get_appointment(self, obj):
-        appointment = Appointment.objects.filter(user=obj)
+        appointment = Appointment.objects.filter(user=obj).order_by('-create_time')
         serializer = AppointmentSerializer(appointment, many=True)
+        return serializer.data
+
+    def get_diagnosis(self, obj):
+        diagnosis = Diagnosis.objects.filter(patient=obj).order_by('-create_time')
+        serializer = DiagnosisSerializer(diagnosis, many=True)
         return serializer.data

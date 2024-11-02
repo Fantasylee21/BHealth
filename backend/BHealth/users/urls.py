@@ -19,16 +19,18 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from users.views import SendEmailRegisterCodeView, RigisterView, LoginView, AvatarView, DoctorView, PatientView, \
-    UserView
+    UserView, SendEmailRetrieveCodeView, RetrieveView
 
 urlpatterns = [
     path('mail/', SendEmailRegisterCodeView.as_view(), name='send_email_register_code'),
     path('register/', RigisterView.as_view(), name='register'),
+    path('retrieve/code/', SendEmailRetrieveCodeView.as_view(), name='retrieve'),
+    path('retrieve/', RetrieveView.as_view(), name='retrieve'),
     path('login/', LoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path("token/verify/", TokenVerifyView.as_view(), name='token_verify'),
     path("<int:pk>/avatar/upload/", AvatarView.as_view({'post': 'avatar_upload'}), name='头像上传'),
-    path("users/<int:pk>/", UserView.as_view({'put': 'put','delete':'delete'}),name = '用户信息更改'),
+    path("users/<int:pk>/", UserView.as_view({'put': 'put', 'delete': 'delete'}), name='用户信息更改'),
     path('doctors/', DoctorView.as_view({'get': 'get'}), name='doctors'),
     path('doctors/<int:pk>/', DoctorView.as_view({'get': 'get_single_doctor'}), name='doctor'),
     path('doctors/special/', DoctorView.as_view({'get': 'get_special_doctors'}), name='special_doctors'),

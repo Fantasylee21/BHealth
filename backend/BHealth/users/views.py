@@ -102,10 +102,56 @@ class SendEmailRegisterCodeView(APIView):
         return Response(data, status=status.HTTP_404_NOT_FOUND)
 
 
+class SendEmailRetrieveCodeView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        data = {
+            'error_email': ''
+        }
+        if not email:
+            return Response({"error": "邮箱不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user_obj = models.User.objects.filter(email=email, is_active=True).first()
+            if not user_obj:
+                data['error_email'] = "用户不存在"
+                return Response(data, status=status.HTTP_404_NOT_FOUND)
+            else:
+                res_email = send_code_email(email, send_type="retrieve")
+                if res_email:
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    data['error_email'] = "验证码发送失败, 请稍后重试"
+                    return Response(data, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print("错误信息 : ", e)
+            data['error_email'] = e.__str__()
+        return Response(data, status=status.HTTP_404_NOT_FOUND)
+
+
+class RetrieveView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        code = request.data.get('code')
+        if not all([email, password, code]):
+            return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
+        cache_key = f'verification_code:{email}'
+        saved_code = cache.get(cache_key)
+        if saved_code != code:
+            return Response({"error": "验证码错误"}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return Response({"error": "用户不存在"}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(password)
+        user.save()
+        return Response(status=status.HTTP_200_OK)
+
+
 class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, context={'request': request})
-
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as e:
@@ -124,7 +170,7 @@ class LoginView(TokenObtainPairView):
 class AvatarView(GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, UserPermission, SuperUserPermission]
+    permission_classes = [IsAuthenticated, UserPermission]
 
     def avatar_upload(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -155,7 +201,7 @@ class DoctorView(GenericViewSet):
     permission_classes = [IsAuthenticated, UserPermission]
     pagination_class = StandardResultsSetPagination  # 使用上面定义的分页类
 
-    #页的大小变为10
+    # 页的大小变为10
     def get(self, request, *args, **kwargs):
         queryset = User.objects.filter(type='doctor').order_by('id')
         page = self.paginate_queryset(queryset)
@@ -230,7 +276,6 @@ class DoctorView(GenericViewSet):
 
 class PatientView(GenericViewSet):
     queryset = User.objects.all()
-
 
     # 分页
     @action(methods=['get'], detail=True, permissions=[NotPatientPermission])
