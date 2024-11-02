@@ -51,7 +51,7 @@
             <td>{{ index + 1 }}</td>
             <td>{{ row.username }}</td>
             <td>{{ row.education }}</td>
-            <td>{{ row.date_joined }}</td>
+            <td>{{ row.work_time }}</td>
             <td>{{ row.school }}</td>
             <td>{{ row.title }}</td>
             <td>{{ row.category }}</td>
@@ -215,7 +215,7 @@ const getDoctor = async (page : number) => {
     const res = await api.getAllDoctor({page});
     tableData.value = res.results;
     tableData.value.forEach((item) => {
-      item.date_joined = formatTime(item.date_joined);
+      item.work_time = formatTime(item.work_time);
     });
   } catch (e) {
     console.log(e);
@@ -243,7 +243,7 @@ const searchDoctor = async (name : string, category: string, content: string) =>
   try {
     const res = await api.searchDoctor({name, category, content});
     tableData.value.forEach((item) => {
-      item.date_joined = formatTime(item.date_joined);
+      item.work_time = formatTime(item.work_time);
     });
     tableData.value = res;
   } catch (e) {

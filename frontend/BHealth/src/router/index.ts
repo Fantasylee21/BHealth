@@ -6,6 +6,7 @@ const RegisterNumber = () => import('@/views/RegisterNumber.vue')
 const LoginRegister = () => import('@/views/LoginRegister.vue')
 const EditNews = () => import('@/views/EditNews.vue')
 const NewsDetail = () => import('@/views/NewsDetail.vue')
+const UserCenter = () => import('@/views/UserCenter.vue')
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -41,7 +42,12 @@ const routes: Array<RouteRecordRaw> = [
     	path: '/newsDetail/:id',
 		name: 'NewsDetail',
 		component: NewsDetail,
-	  },
+  	},
+	{
+		path: '/userCenter',
+		name: 'UserCenter',
+		component: UserCenter,
+	}
 ]
 
 const router = createRouter({

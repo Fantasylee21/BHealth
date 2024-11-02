@@ -4,7 +4,6 @@
       <h1 class="news-title">{{ newsDetail.title }}</h1>
       <img :src="newsDetail.front_image" alt="News Front Image" class="news-image" />
       <div v-html="newsDetail.content" class="news-content"></div>
-      <p class="news-type"><strong>类型:</strong> {{ newsDetail.type }}</p>
       <p class="news-time"><strong>创建时间:</strong> {{ newsDetail.create_time }}</p>
       <p class="news-time"><strong>更新时间:</strong> {{ newsDetail.update_time }}</p>
 

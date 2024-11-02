@@ -19,6 +19,8 @@
     "echarts": "^5.5.1",
     "element-plus": "^2.7.7",
     "pinia": "^2.2.2",
+    "pinia-plugin-persist": "^1.0.0",
+    "pinia-plugin-persistedstate": "^4.1.2",
     "swiper": "^11.1.12",
     "vue": "^3.4.29",
     "vue-ionicons": "^3.0.5",

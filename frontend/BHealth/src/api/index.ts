@@ -274,5 +274,35 @@ export default {
 			console.log(`output->error`, error)
 			ElMessage.error(error.response.data.error)
 		}
+	},
+
+	uploadAvatar : async function(params : {user_id : string, formData: FormData}) {
+		try {
+			const res = await api.post(`users/${params.user_id}/avatar/upload/`,params.formData, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	changeUserInfo : async function(params : { username: string, email: string, title: string, category: string, education: string, school: string, work_time: string, type : string , introduction : string}, user_id : string,) {
+		try {
+			const res = await api.put(`users/users/${user_id}/`, params, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
 	}
 }

@@ -13,31 +13,43 @@
                 alt="Element logo"
             />
             <div class="flex-grow"/>
-<!--            显示头像-->
-              <el-sub-menu index="1">
-                  <template #title>
-                      <el-avatar
-                          :size="40"
-                          :src="avatar"
-                          class="nav-avatar"
-                      />
-                  </template>
-                  <el-menu-item index="profile" @click="handleCommand('userCenter')">个人中心</el-menu-item>
-                  <el-menu-item index="logout" @click="handleCommand('logout')">退出登录</el-menu-item>
-              </el-sub-menu>
+            <!-- 显示头像 -->
+            <el-sub-menu index="1">
+                <template #title>
+                    <el-avatar
+                        :size="40"
+                        :src="avatar"
+                        class="nav-avatar"
+                    />
+                    <span style="margin-left: 10px">{{ profile.username }}</span>
+                </template>
+                <el-menu-item index="logout" @click="showDialog=true">退出登录</el-menu-item>
+            </el-sub-menu>
         </el-menu>
+
+        <el-dialog
+            title="退出登录"
+            v-model="showDialog"
+            width="30%"
+            :before-close="handleClose">
+            <span >您确定要退出登录吗？</span>
+            <span class="dialog-footer">
+                <el-button @click="showDialog = false">取 消</el-button>
+                <el-button type="primary" @click="logout">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {useProfileStore} from "@/stores/profile";
-
+import { useProfileStore } from "@/stores/profile";
 
 const activeIndex = ref('1')
 const router = useRouter()
 const profile = useProfileStore()
+const showDialog = ref(false)
 
 const avatar = profile.avatar
 
@@ -45,14 +57,16 @@ const handleSelect = (key: string, keyPath: string[]) => {
     console.log(key, keyPath)
 }
 
-function handleCommand(command: string) {
-    if (command === 'logout') {
-        sessionStorage.removeItem('token')
-        router.push('/login')
-        console.log('Logging out...')
-    } else if (command === 'userCenter') {
-        router.push('/userCenter')  // 假设有个人主页的路由
-    }
+
+function logout() {
+    sessionStorage.removeItem('token')
+    router.push('/login')
+    showDialog.value = false
+    console.log('Logging out...')
+}
+
+function handleClose() {
+    showDialog.value = false
 }
 </script>
 
@@ -64,5 +78,12 @@ function handleCommand(command: string) {
 
 .flex-grow {
     flex-grow: 1;
+}
+
+.dialog-footer {
+    margin-top: 30px;
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #e4e7ed;
 }
 </style>

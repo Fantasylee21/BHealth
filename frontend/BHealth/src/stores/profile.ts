@@ -64,6 +64,7 @@ export const useProfileStore = defineStore('profile', {
   },
 
   persist: {
+    persist: true,
     key: 'profile-store',
     storage: window.localStorage,
     paths: [
