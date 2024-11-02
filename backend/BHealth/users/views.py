@@ -180,7 +180,7 @@ class AvatarView(GenericViewSet):
             return Response({"error": "头像不能为空"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         if not avatar.name.endswith('.jpg') and not avatar.name.endswith('.png'):
             return Response({"error": "头像格式错误"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        if avatar.size > 1024 * 300:
+        if avatar.size > 1024 * 1024 * 2:
             return Response({"error": "头像过大"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         serializer = self.get_serializer(obj, data={"avatar": avatar}, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
