@@ -52,6 +52,7 @@ export default {
 		try {
 			const user = await api.post(`users/login/`, params)
 			sessionStorage.setItem('token', user.data.token)
+			sessionStorage.setItem('type', user.data.type)
 			return user.data
 		} catch (error: any) {
 			console.log(`output->error`, error)
@@ -277,13 +278,18 @@ export default {
 	},
 
 	uploadAvatar : async function(params : {user_id : string, formData: FormData}) {
+		console.log(`output->params`, params.formData)
+		console.log(`output->params`, params.user_id)
+		console.log(`output->params`, params.formData.get('avatar'))
 		try {
 			const res = await api.post(`users/${params.user_id}/avatar/upload/`,params.formData, {
 				headers: {
-					'Content-Type': 'application/json',
+					// 'Content-Type': 'application/json',
 					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
 				}
 			});
+			await this.getSelfInfo();
+			ElMessage.success('上传成功');
 			return res.data;
 		} catch (error: any) {
 			console.log(`output->error`, error)
@@ -299,6 +305,22 @@ export default {
 					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
 				}
 			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	deleteNews : async function(params : { id: string }) {
+		try {
+			const res = await api.delete(`news/news/${params.id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			ElMessage.success('删除成功');
 			return res.data;
 		} catch (error: any) {
 			console.log(`output->error`, error)
