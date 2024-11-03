@@ -39,9 +39,9 @@
             <th>医生姓名</th>
             <th>学历</th>
             <th>开始工作时间</th>
-            <th>毕业学校</th>
             <th>职称</th>
             <th>科室</th>
+            <th>毕业学校</th>
             <th>介绍</th>
             <th>操作</th>
           </tr>
@@ -52,14 +52,15 @@
             <td>{{ row.username }}</td>
             <td>{{ row.education }}</td>
             <td>{{ row.work_time }}</td>
-            <td>{{ row.school }}</td>
             <td>{{ row.title }}</td>
             <td>{{ row.category }}</td>
+            <td>{{ row.school }}</td>
             <td>{{ row.introduction }}</td>
             <td>
               <el-button @click="editRow(row)" type="success" size="small">放号</el-button>
               <el-button @click="deleteRow(row)" type="danger" size="small">删除</el-button>
               <el-button type="primary" @click="register(row)" size="small">挂号</el-button>
+              <el-button @click="changeInfo(row)" type="info" size="small">修改</el-button>
             </td>
           </tr>
         </tbody>
@@ -161,6 +162,68 @@
 <el-dialog v-model="dialogFormVisible3" title="我们的ai生成推荐结果是" width="500px">
    <span class="aiAnswer">{{aiAnswer}}</span>
 </el-dialog>
+<el-dialog v-model="dialogFormVisible4" title="修改医生信息" width="500px">
+  <el-form :model="info">
+    <el-form-item label="医生姓名" :label-width="formLabelWidth">
+      <el-input v-model="info.username" autocomplete="off" placeholder="请输入" type="text"/>
+    </el-form-item>
+    <el-form-item label="学历" :label-width="formLabelWidth">
+      <el-select v-model="info.education" placeholder="请选择">
+        <el-option
+          v-for="item in allEducation"
+          :key="item"
+          :label="item"
+          :value="item"
+        >
+        </el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="开始工作时间" :label-width="formLabelWidth">
+      <el-date-picker
+        v-model="info.work_time"
+        type="date"
+        placeholder="选择日期"
+        style="width: 100%;"
+      />
+    </el-form-item>
+    <el-form-item label="科室" :label-width="formLabelWidth">
+      <el-select v-model="info.category" placeholder="请选择">
+        <el-option
+          v-for="item in allDepartment1"
+          :key="item"
+          :label="item"
+          :value="item"
+        >
+        </el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="职称" :label-width="formLabelWidth">
+      <el-select v-model="info.title" placeholder="请选择">
+        <el-option
+          v-for="item in allTitle"
+          :key="item"
+          :label="item"
+          :value="item"
+        >
+        </el-option>
+      </el-select>
+    </el-form-item>
+    <el-form-item label="毕业学校" :label-width="formLabelWidth">
+      <el-input v-model="info.school" autocomplete="off" placeholder="请输入" type="text"/>
+    </el-form-item>
+    <el-form-item label="介绍" :label-width="formLabelWidth">
+      <el-input v-model="info.introduction" autocomplete="off" placeholder="请输入" type="text"/>
+    </el-form-item>
+  </el-form>
+  <template #footer>
+    <div class="dialog-footer">
+      <el-button type="primary" @click="submitInfo">
+        确认
+      </el-button>
+      <el-button @click="dialogFormVisible4 = false">取消</el-button>
+    </div>
+  </template>
+</el-dialog>
   </div>
   <div class="ai" @click="openAi">
     <p class="aip">AI</p>
@@ -200,10 +263,14 @@ const tableData = ref([
   // {name : '林十四', education : '博士', workTime : '2011-09-01', school : '西安交通大学', title : '主治医师', department : '消化科', introduction : '擅长治疗消化系统疾病'},
 ]);
 const allDepartment = ref(['全部', '内科', '外科', '妇产科', '儿科', '皮肤科','耳鼻喉科','口腔科','骨科','神经科','心血管科','肿瘤科','消化科']);
+const allDepartment1 = ref(['内科', '外科', '妇产科', '儿科', '皮肤科','耳鼻喉科','口腔科','骨科','神经科','心血管科','肿瘤科','消化科']);
+const allEducation = ref(['本科', '硕士', '博士']);
+const allTitle = ref(['主任医师', '副主任医师', '主治医师', '住院医师']);
 const dialogFormVisible = ref(false);
 const dialogFormVisible1 = ref(false);
 const dialogFormVisible2 = ref(false);
 const dialogFormVisible3 = ref(false);
+const dialogFormVisible4 = ref(false);
 const canRegister = ref(false);
 const description = ref('');
 const formLabelWidth = '140px'
@@ -224,7 +291,7 @@ const getDoctor = async (page : number) => {
 
 const formatTime = (time : string ) => {
   const date = new Date(time);
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 }
 
 onMounted(() => {
@@ -242,10 +309,10 @@ const delDoctor = async (id : string) => {
 const searchDoctor = async (name : string, category: string, content: string) => {
   try {
     const res = await api.searchDoctor({name, category, content});
+    tableData.value = res;
     tableData.value.forEach((item) => {
       item.work_time = formatTime(item.work_time);
     });
-    tableData.value = res;
   } catch (e) {
     console.log(e);
   }
@@ -323,8 +390,77 @@ const deleteRow = (row) => {
 
 const searchByName = () => {
   console.log('搜索', searchValue.value);
-  searchDoctor(searchValue.value, department.value, '');
+  if (department.value === '全部') {
+    searchDoctor(searchValue.value, '', '');
+  } else {
+    searchDoctor(searchValue.value, department.value, '');
+  }
 };
+
+interface Info {
+  username: string
+  email: string
+  type: string
+  category: string
+  introduction: string
+  education: string
+  title: string
+  work_time: string
+  school: string
+}
+const info = ref<Info>({
+  username: '',
+  email: '',
+  type: '',
+  category: '',
+  introduction: '',
+  education: '',
+  title: '',
+  work_time: '',
+  school: '',
+})
+
+const changeInfo = (row) => {
+  console.log('修改', row);
+  dialogFormVisible4.value = true;
+  clickDoctorId.value = row.id;
+  info.value.username = row.username;
+  info.value.category = row.category;
+  info.value.introduction = row.introduction;
+  info.value.education = row.education;
+  info.value.title = row.title;
+  info.value.work_time = row.work_time;
+  info.value.school = row.school;
+};
+
+const submitInfo = () => {
+  console.log('提交', info);
+  dialogFormVisible4.value = false;
+  if (info.value.username === '') {
+    ElMessage.error('请填写完整信息');
+    return;
+  } else {
+    const date = new Date(info.value.work_time);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const work_time = `${year}-${month}-${day}`;
+    console.log('提交', work_time);
+    changeUserInfo();
+
+    getDoctor(currentPage.value);
+  }
+};
+
+const changeUserInfo = async () => {
+  try {
+    await api.changeUserInfo(info.value, clickDoctorId.value.toString());
+    ElMessage.success('修改成功');
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 
 const submitNumber = () => {
   console.log('提交', form);
@@ -548,7 +684,7 @@ button {
 }
 
 .el-dialog {
-  margin-top: 13%;
+  margin-top: 3%;
 }
 
 .createDoctor {

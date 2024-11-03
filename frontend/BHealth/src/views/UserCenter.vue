@@ -385,7 +385,7 @@ footer {
 .avatar {
   margin: auto 600px auto auto;
   width: 280px;
-  height: 260px;
+  height: 280px;
   border: 6px dashed #d9d9d9;
   border-radius: 10px;
   position: relative;

@@ -41,9 +41,10 @@ import { useRoute } from "vue-router";
 import router from "@/router";
 import {useProfileStore} from "@/stores/profile";
 
+const $route = useRoute();
+const id = $route.params.id;
+
 const getNewsDetail = async () => {
-    const $route = useRoute();
-    const id = $route.params.id;
     const res = await api.getNewsDetail({ id });
     console.log('News Detail:', res.data);
     newsDetail.value = res;
@@ -85,17 +86,17 @@ const formatTime = (time: string) => {
 
 const dialogVisible = ref(false);
 
-const deleteNews = async () => {
-    const $route = useRoute();
-    const id = $route.params.id;
-    console.log('Delete News ID:', id);
+const deleteNews = async (id) => {
     await api.deleteNews({ id });
 }
 
+
+
 const handleConfirm = () => {
     dialogVisible.value = false;
+
     router.push('/news');
-    deleteNews();
+    deleteNews(id);
 }
 
 const profile = useProfileStore();
