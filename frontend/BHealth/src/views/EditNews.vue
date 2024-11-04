@@ -49,6 +49,7 @@ const submitData = async () => {
 </script>
 
 <template>
+    <h1 class="titleAll">编辑新闻界面</h1>
     <div class="edit-news-container">
         <!-- Transition between the editor and upload section -->
         <transition name="slide-fade" mode="out-in">
@@ -95,6 +96,44 @@ const submitData = async () => {
 </template>
 
 <style scoped>
+.titleAll {
+  /* 现有样式保持不变 */
+  margin-top: 5%;
+  font-size: 2.5rem;
+  color: #007BFF;
+  text-align: center;
+  padding: 20px 0;
+  margin-bottom: 20px;
+  background-color: rgba(135, 206, 250, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.titleAll::after {
+  content: "📰";
+  display: inline-block; /* 或者 block */
+  font-size: 1.5rem;
+  margin-left: 10px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
 .edit-news-container {
     display: flex;
     justify-content: center;
@@ -106,7 +145,6 @@ const submitData = async () => {
 .image-upload-section {
     width: 100%;
     text-align: center;
-    margin-top: 100px;
     background: linear-gradient(135deg, #f9f9f9 30%, #eaeaea);
     padding: 40px;
     border-radius: 10px;

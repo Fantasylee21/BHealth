@@ -13,49 +13,55 @@
             </el-icon>
             <template #title>Toggle Collapse</template>
         </el-menu-item>
-        <el-sub-menu index="1">
-            <template #title>
-                <el-icon>
-                    <location/>
-                </el-icon>
-                <span>Navigator One</span>
-            </template>
-            <el-menu-item-group>
-                <template #title><span>Group One</span></template>
-                <el-menu-item index="1-1">item one</el-menu-item>
-                <el-menu-item index="1-2">item two</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group title="Group Two">
-                <el-menu-item index="1-3">item three</el-menu-item>
-            </el-menu-item-group>
-            <el-sub-menu index="1-4">
-                <template #title><span>item four</span></template>
-                <el-menu-item index="1-4-1">item one</el-menu-item>
-            </el-sub-menu>
-        </el-sub-menu>
+<!--        <el-sub-menu index="1">-->
+<!--            <template #title>-->
+<!--                <el-icon>-->
+<!--                    <location/>-->
+<!--                </el-icon>-->
+<!--                <span>Navigator One</span>-->
+<!--            </template>-->
+<!--            <el-menu-item-group>-->
+<!--                <template #title><span>Group One</span></template>-->
+<!--                <el-menu-item index="1-1">item one</el-menu-item>-->
+<!--                <el-menu-item index="1-2">item two</el-menu-item>-->
+<!--            </el-menu-item-group>-->
+<!--            <el-menu-item-group title="Group Two">-->
+<!--                <el-menu-item index="1-3">item three</el-menu-item>-->
+<!--            </el-menu-item-group>-->
+<!--            <el-sub-menu index="1-4">-->
+<!--                <template #title><span>item four</span></template>-->
+<!--                <el-menu-item index="1-4-1">item one</el-menu-item>-->
+<!--            </el-sub-menu>-->
+<!--        </el-sub-menu>-->
         <el-menu-item index="/editor">
             <el-icon>
-                <icon-menu/>
+                <Edit/>
             </el-icon>
-            <template #title>Navigator Two</template>
+            <template #title>编辑新闻</template>
         </el-menu-item>
         <el-menu-item index="/registerNumber">
             <el-icon>
-                <document/>
+                <School/>
             </el-icon>
-            <template #title>Navigator Three</template>
+            <template #title>全部医生</template>
         </el-menu-item>
         <el-menu-item index="/news">
             <el-icon>
-                <setting/>
+                <Share/>
             </el-icon>
-            <template #title>Navigator Four</template>
+            <template #title>医院新闻</template>
+        </el-menu-item>
+        <el-menu-item index="/drugs">
+            <el-icon>
+                <Management/>
+            </el-icon>
+            <template #title>药品库存</template>
         </el-menu-item>
         <el-menu-item index="/userCenter">
             <el-icon>
                 <UserFilled/>
             </el-icon>
-            <template #title>Navigator Five</template>
+            <template #title>个人中心</template>
         </el-menu-item>
     </el-menu>
 </template>
@@ -69,7 +75,7 @@ import {
     Setting,
 } from '@element-plus/icons-vue';
 import {ArrowLeft, ArrowRight} from '@element-plus/icons-vue';
-import {UserFilled} from "@element-plus/icons";
+import {Edit, Management, School, Share, UserFilled} from "@element-plus/icons";
 
 const isCollapse = ref(true);
 const handleOpen = (key: string, keyPath: string[]) => {

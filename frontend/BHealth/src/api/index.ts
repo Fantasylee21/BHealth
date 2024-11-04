@@ -156,6 +156,21 @@ export default {
 		}
 	},
 
+	getDoctorById : async function (params: { user_id: string}) {
+		try {
+			const res = await api.get(`users/users/${params.user_id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
 	delDoctor : async function (params: { id: string}) {
 		try {
 			const isSuccess = (await api.delete(`users/users/${params.id}/`, {
@@ -326,5 +341,85 @@ export default {
 			console.log(`output->error`, error)
 			ElMessage.error(error.response.data.error)
 		}
+	},
+
+	getAllDrugs : async function() {
+		try {
+			const res = await api.get(`drugs/drugs/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	addDrug : async function(params : { name: string, price: number, stock: number, description: string, dosage: number}) {
+		try {
+			const res = await api.post(`drugs/drugs/`, params, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			ElMessage.success('添加成功');
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error('添加失败,已经有该药品了');
+		}
+	},
+
+	addDrugStock : async function(params : {name: string, price: number, stock: number, description: string, dosage: number}, drug_id : string) {
+		try {
+			const res = await api.put(`drugs/drugs/${drug_id}`, params, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			ElMessage.success('添加药品成功');
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+	},
+
+	useDrug : async function(params : {userid : string}) {
+		try {
+			const res = await api.put(`drugs/drugs/`, params, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			ElMessage.success('取药成功');
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+			ElMessage.error('取药失败');
+		}
+	},
+
+	getPatientInfoById : async function(params : {patient_id : string}) {
+		try {
+			const res = await api.get(`users/patients/${params.patient_id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error(error.response.data.error)
+		}
+
 	}
 }

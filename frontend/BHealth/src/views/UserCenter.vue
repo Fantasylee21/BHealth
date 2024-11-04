@@ -79,13 +79,25 @@
 
     <div class="settings" :class="{ 'noshow': activeTab !== 'settings' }">
       <h1>信息变更</h1>
-      <h2>用户名<button class="btn" @click="nameInputDisabled = !nameInputDisabled">更改</button></h2>
-      <p><el-input v-model="nameInput" :disabled="nameInputDisabled"></el-input> </p>
-      <h2>简介<button class="btn" @click="introductionInputDisabled = !introductionInputDisabled">更改</button></h2>
-      <p><el-input v-model="introductionInput" :disabled="introductionInputDisabled"></el-input></p>
-      <h2>邮箱<button class="btn" @click="emailInputDisabled = !emailInputDisabled">更改</button></h2>
-      <p><el-input v-model="emailInput" :disabled="emailInputDisabled"></el-input> </p>
-      <el-button type="primary" @click="updateProfile" class="save">保存</el-button>
+      <h2>
+      用户名
+      <button class="btn" @click="nameInputDisabled = !nameInputDisabled">{{ nameInputDisabled ? '更改' : '取消' }}</button>
+    </h2>
+    <p><el-input v-model="nameInput" :disabled="nameInputDisabled"></el-input></p>
+
+    <h2>
+      简介
+      <button class="btn" @click="introductionInputDisabled = !introductionInputDisabled">{{ introductionInputDisabled ? '更改' : '取消' }}</button>
+    </h2>
+    <p><el-input v-model="introductionInput" :disabled="introductionInputDisabled"></el-input></p>
+
+    <h2>
+      邮箱
+      <button class="btn" @click="emailInputDisabled = !emailInputDisabled">{{ emailInputDisabled ? '更改' : '取消' }}</button>
+    </h2>
+    <p><el-input v-model="emailInput" :disabled="emailInputDisabled"></el-input></p>
+
+    <el-button type="primary" @click="updateProfile" class="save">保存</el-button>
     </div>
   </div>
 </div>
@@ -207,7 +219,7 @@ body {
 .container {
   background: #FFFFFF;
   width: 1350px;
-  height: 420px;
+  height: 480px;
   position: relative;
   margin: 6% auto;
   box-shadow: 2px 5px 20px rgba(119, 119, 119, 0.5);
@@ -225,9 +237,9 @@ body {
 }
 
 .CTA {
-  width: 80px;
+  width: 120px;
   height: 40px;
-  right: -20px;
+  right: -40px;
   bottom: 0;
   margin-bottom: 90px;
   position: absolute;
@@ -263,7 +275,7 @@ nav a {
   list-style: none;
   padding: 35px;
   color: #FFFFFF;
-  font-size: 1.1em;
+  font-size: 1.4em;
   display: block;
   transition: all .3s ease-in-out;
   &:hover {
@@ -295,7 +307,7 @@ nav a {
 h1 {
   font-family: 'Montserrat', sans-serif;
   color: #3680ae;
-  font-size: 1em;
+  font-size: 1.4em;
   margin-top: 40px;
   margin-bottom: 35px;
 }
@@ -305,7 +317,7 @@ h2 {
   font-family: 'Roboto', sans-serif;
   width: 80%;
   text-transform: uppercase;
-  font-size: 8px;
+  font-size: 18px;
   letter-spacing: 1px;
   margin-left: 2px;
 }
@@ -317,7 +329,7 @@ p {
   border-top: 0;
   width: 80%;
   font-family: 'Montserrat', sans-serif;
-  font-size: .7em;
+  font-size: .9em;
   padding: 7px 0;
   color: #070707;
 }
