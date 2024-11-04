@@ -49,12 +49,20 @@ class DrugView(GenericViewSet):
 
     def put(self, request, *args, **kwargs):
         drug = Drug.objects.get(id=kwargs['id'])
-        data = request.data
-        serializer = DrugSerializer(drug, data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not drug:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        if request.data.get('stock'):
+            drug.stock = request.data.get('stock')
+        if request.data.get('price'):
+            drug.price = request.data.get('price')
+        if request.data.get('name'):
+            drug.name = request.data.get('name')
+        if request.data.get('description'):
+            drug.description = request.data.get('description')
+        if request.data.get('dosage'):
+            drug.image = request.data.get('dosage')
+        drug.save()
+        return Response(status=status.HTTP_200_OK)
 
     def get_by_name(self, request, *args, **kwargs):
         name = kwargs['name']
