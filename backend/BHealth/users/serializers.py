@@ -48,10 +48,11 @@ class DoctorSerializer(serializers.ModelSerializer):
 
 class DiagnosisSerializer(serializers.ModelSerializer):
     doctor = serializers.IntegerField(source='doctor.id')
+    patient = serializers.IntegerField(source='patient.id')
 
     class Meta:
         model = Diagnosis
-        fields = ['id', 'doctor', 'content', 'create_time', 'update_time', 'is_delete', ]
+        fields = ['id', 'doctor', 'patient', 'content', 'create_time', 'update_time', 'is_delete', ]
 
 
 class UserSerializer(serializers.ModelSerializer):

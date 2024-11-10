@@ -41,6 +41,7 @@ urlpatterns = [
     path('patients/<int:pk>/', PatientView.as_view({'get': 'get_single_patient'}), name='patient'),
     # path('patients/<int:pk>/diagnosis', PatientView.as_view({'post': 'post'}), name='patient'),
     path('patients/appointment/', PatientView.as_view({'post': 'upload_appointment'}), name='appointment'),
-    path('diagnosis/<int:pk>/', DoctorView.as_view({'put': 'write_diagnosis'}), name='diagnosis'),
+    path('diagnosis/<int:pk>/', DoctorView.as_view({'put': 'write_diagnosis', 'get': 'get_diagnosis4pdf'}),
+         name='diagnosis'),
     path('self/', UserView.as_view({'get': 'get'}), name='self'),
 ]

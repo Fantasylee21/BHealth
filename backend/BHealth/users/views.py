@@ -1,35 +1,25 @@
+import os
 import re
 from datetime import datetime
 
-from django.contrib.admin import filters
 from django.core.cache import cache
-from django.core.exceptions import MultipleObjectsReturned
-from django.shortcuts import render
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-
-from BHealth.settings import MEDIA_ROOT
-from permisson import UserPermission, NotPatientPermission, SuperUserPermission
-from users import models
-from users.models import User, EmailVerifyRecord, WorkSchedule, Diagnosis, Appointment
-from users.send_email import send_code_email
-from users.serializers import UserSerializer, DoctorSerializer, AppointmentSerializer, WorkScheduleSerializer
-import os
-import random
-import re
-
-from django.core.mail import send_mail
 from django.http import FileResponse
-from rest_framework import status, mixins
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import AnonRateThrottle
+
+from BHealth.settings import MEDIA_ROOT
+from permisson import UserPermission, NotPatientPermission
+from users import models
+from users.models import User, WorkSchedule, Diagnosis, Appointment
+from users.send_email import send_code_email
+from users.serializers import UserSerializer, DoctorSerializer, AppointmentSerializer, WorkScheduleSerializer, \
+    DiagnosisSerializer
 
 
 # Create your views here.
@@ -263,14 +253,20 @@ class DoctorView(GenericViewSet):
         now_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         if not all([from_time, end_time, num]):
             return Response({"error": "参数不全"}, status=status.HTTP_400_BAD_REQUEST)
-        if (from_time < now_time) or (end_time < now_time):
-            return Response({"error": "时间不能早于当前时间"}, status=status.HTTP_400_BAD_REQUEST)
         if from_time > end_time:
             return Response({"error": "开始时间不能晚于结束时间"}, status=status.HTTP_400_BAD_REQUEST)
         if WorkSchedule.objects.filter(doctor=doctor, from_time=from_time, end_time=end_time).exists():
             return Response({"error": "该时间段已存在"}, status=status.HTTP_400_BAD_REQUEST)
         ws = WorkSchedule.objects.create(doctor=doctor, from_time=from_time, end_time=end_time, num=num)
         serializer = WorkScheduleSerializer(ws)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    def get_diagnosis4pdf(self, request, *args, **kwargs):
+        diagnosis = Diagnosis.objects.filter(id=self.kwargs['pk']).first()
+        if not diagnosis:
+            return Response({"error": "诊断不存在"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = DiagnosisSerializer(diagnosis)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

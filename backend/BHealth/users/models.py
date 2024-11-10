@@ -36,6 +36,8 @@ class User(AbstractUser):
     work_time = models.DateTimeField(verbose_name='开始工作时间', default=datetime.datetime.now)
     # 毕业院校
     school = models.CharField(max_length=20, verbose_name='毕业院校', default='清华大学')
+    #出生年月
+    birth = models.DateField(verbose_name='出生年月', default=datetime.datetime.now)
 
     class Meta:
         db_table = 'users'

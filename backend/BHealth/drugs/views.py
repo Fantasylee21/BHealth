@@ -1,28 +1,13 @@
 import json
 
-from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from drugs.models import Drug
 from drugs.serializers import DrugSerializer
-from permisson import UserPermission, NotPatientPermission, YaoshiPermission
-from users import models
-from users.models import User, EmailVerifyRecord, Diagnosis
-from users.send_email import send_code_email
-from users.serializers import UserSerializer, DoctorSerializer
-import os
-import random
-import re
-
-from django.core.mail import send_mail
-from django.http import FileResponse
-from rest_framework import status, mixins
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import AnonRateThrottle
+from permisson import YaoshiPermission
+from users.models import User, Diagnosis
 
 
 # Create your views here.
