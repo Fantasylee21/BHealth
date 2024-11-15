@@ -90,18 +90,22 @@
               <el-input v-model="patientInfo.content" />
             </el-form-item>
             <el-form-item label="药品">
-              <div v-for="(drug, index) in patientInfo.takenDrugs" :key="index">
-                <el-row>
-                  <el-col :span="12">
-                    <el-input v-model="drug.name" placeholder="药品名称" />
-                  </el-col>
-                  <el-col :span="12">
-                    <el-input v-model="drug.count" placeholder="用量" />
-                  </el-col>
-                </el-row>
-              </div>
-              <el-icon @click="addDrug" class="drugAdd"><Plus /></el-icon>
-              <el-icon @click="delDrug" class="drugSub"> <Minus /> </el-icon>
+              <transition-group name="list" tag="div">
+                <div v-for="(drug, index) in patientInfo.takenDrugs" :key="index" class="drug-item">
+                  <el-row gutter={20}>
+                    <el-col :span="8">
+                      <el-input v-model="drug.name" placeholder="药品名称" />
+                    </el-col>
+                    <el-col :span="8">
+                      <el-input v-model="drug.count" placeholder="用量" />
+                    </el-col>
+                    <el-col :span="4">
+                      <el-icon @click="delDrug(index)" class="drug-action-icon" title="删除药品"><Minus /></el-icon>
+                    </el-col>
+                  </el-row>
+                </div>
+              </transition-group>
+              <el-icon @click="addDrug" class="drug-action-icon add-icon" title="添加药品"><Plus /></el-icon>
             </el-form-item>
             <el-form-item label="建议">
               <el-input v-model="patientInfo.advice" />
@@ -269,9 +273,30 @@ const delDrug = () => {
   border: 0;
   border-top: 1px solid #000000;
 }
-.drugSub {
+
+.drug-item {
+  opacity: 1;
+  transition: all 0.5s ease;
+}
+
+.list-enter-active, .list-leave-active {
+  transition: all 0.5s;
+}
+.list-enter, .list-leave-to /* .list-leave-active in <2.1.8 */ {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.drug-action-icon {
   cursor: pointer;
-  margin-left: 20px;
+  color: #409eff;
+  font-size: 18px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+
+.add-icon:hover {
+  transform: scale(1.2) rotate(45deg);
 }
 
 </style>
