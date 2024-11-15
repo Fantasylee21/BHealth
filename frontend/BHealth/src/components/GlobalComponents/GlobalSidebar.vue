@@ -57,6 +57,12 @@
             </el-icon>
             <template #title>药品库存</template>
         </el-menu-item>
+        <el-menu-item index="/editCase">
+            <el-icon>
+                <Document/>
+            </el-icon>
+            <template #title>病例编辑</template>
+        </el-menu-item>
         <el-menu-item index="/userCenter">
             <el-icon>
                 <UserFilled/>

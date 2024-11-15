@@ -8,6 +8,7 @@ const EditNews = () => import('@/views/EditNews.vue')
 const NewsDetail = () => import('@/views/NewsDetail.vue')
 const UserCenter = () => import('@/views/UserCenter.vue')
 const DrugsInfo = () => import('@/views/DrugsInfo.vue')
+const EditCase = () => import('@/views/EditCase.vue')
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -53,6 +54,11 @@ const routes: Array<RouteRecordRaw> = [
 		path: '/drugs',
 		name: 'DrugsInfo',
 		component: DrugsInfo,
+	},
+	{
+		path: '/editCase',
+		name: 'EditCase',
+		component: EditCase,
 	}
 ]
 

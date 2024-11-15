@@ -18,6 +18,7 @@
     "axios": "^1.7.7",
     "echarts": "^5.5.1",
     "element-plus": "^2.7.7",
+    "html2pdf.js": "^0.10.2",
     "pinia": "^2.2.2",
     "pinia-plugin-persist": "^1.0.0",
     "pinia-plugin-persistedstate": "^4.1.2",
