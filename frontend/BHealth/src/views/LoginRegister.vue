@@ -133,11 +133,17 @@ const handleLogin = async () => {
     const ret = await api.login(loginForm.value)
     if (ret) {
         ElMessage.success('登录成功')
-        profile.updateProfile(ret)
-        UtilMethods.jump('/staging')
+        await getSelfInfo()
+
+        window.location.reload();
+        UtilMethods.jump('/news')
     } else {
         ElMessage.error('密码错误或用户不存在')
     }
+}
+
+const getSelfInfo = async () => {
+    await api.getSelfInfo();
 }
 
 const validateSignupForm = () => {

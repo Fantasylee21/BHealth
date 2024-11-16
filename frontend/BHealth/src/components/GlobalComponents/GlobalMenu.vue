@@ -23,6 +23,7 @@
                     />
                     <span style="margin-left: 10px">{{ profile.username }}</span>
                 </template>
+                <el-menu-item index="profile" @click="router.push('/diagnosis/' + patientId);">我的诊断书</el-menu-item>
                 <el-menu-item index="logout" @click="showDialog=true">退出登录</el-menu-item>
             </el-sub-menu>
         </el-menu>
@@ -52,7 +53,7 @@ const profile = useProfileStore()
 const showDialog = ref(false)
 
 const avatar = profile.avatar
-
+const patientId = profile.id
 const handleSelect = (key: string, keyPath: string[]) => {
     console.log(key, keyPath)
 }
@@ -60,7 +61,7 @@ const handleSelect = (key: string, keyPath: string[]) => {
 
 function logout() {
     sessionStorage.removeItem('token')
-    router.push('/login')
+    router.push('/loginRegister')
     showDialog.value = false
     console.log('Logging out...')
 }

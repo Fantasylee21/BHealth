@@ -57,10 +57,10 @@
             <td>{{ row.school }}</td>
             <td>{{ row.introduction }}</td>
             <td>
-              <el-button @click="editRow(row)" type="success" size="small">放号</el-button>
-              <el-button @click="deleteRow(row)" type="danger" size="small">删除</el-button>
-              <el-button type="primary" @click="register(row)" size="small">挂号</el-button>
-              <el-button @click="changeInfo(row)" type="info" size="small">修改</el-button>
+              <el-button @click="editRow(row)" type="success" size="small" v-if="hasAccess(['admin'])">放号</el-button>
+              <el-button @click="deleteRow(row)" type="danger" size="small" v-if="hasAccess(['admin'])">删除</el-button>
+              <el-button type="primary" @click="register(row)" size="small" v-if="hasAccess(['patient', 'admin'])">挂号</el-button>
+              <el-button @click="changeInfo(row)" type="info" size="small" v-if="hasAccess(['admin'])">修改</el-button>
             </td>
           </tr>
         </tbody>
@@ -95,7 +95,7 @@
           v-model="form.startTime"
           start="08:30"
           step="00:30"
-          end="18:30"
+          end="23:30"
           placeholder="请选择放号时间段"
         />
       </el-form-item>
@@ -125,7 +125,7 @@
           v-model="registerData.doctorStartTime"
           start="08:30"
           step="00:30"
-          end="18:30"
+          end="23:30"
           placeholder="请选择预约时间段"
         />
       </el-form-item>
@@ -540,17 +540,7 @@ const aiAnswer = ref('111');
 const submitDescription = () => {
   //提交Description
   console.log('提交症状描述', description.value);
-  const loading = ElLoading.service({
-    lock: true,
-    text: 'Loading',
-    background: 'rgba(0, 0, 0, 0.7)',
-  })
-  setTimeout(() => {
-    loading.close();
-    dialogFormVisible2.value = false;
-    dialogFormVisible3.value = true;
-    description.value='';
-  }, 3000)
+  aiask();
 }
 
 // const createDoctor = () => {
@@ -562,6 +552,42 @@ const submitDescription = () => {
 const openAi = () => {
   console.log('打开AI聊天');
   dialogFormVisible2.value = true;
+};
+
+const userType = ref(sessionStorage.getItem('type'));
+const isSuperUser = ref(sessionStorage.getItem('is_superuser') === 'true');
+
+// 检查用户是否有权限访问特定菜单项
+const hasAccess = (allowedRoles) => {
+  if (isSuperUser.value) return true; // 超级管理员可以访问所有菜单
+  return allowedRoles.includes(userType.value);
+};
+
+const aiask = async () => {
+  const loading = ElLoading.service({
+    lock: true,
+    text: 'Loading',
+    background: 'rgba(0, 0, 0, 0.7)',
+  });
+  // 10s后自动关闭加载指示器
+  setTimeout(() => {
+    loading.close();
+    aiAnswer.value = 'AI出现了一点问题，请稍后再试';
+  }, 10000);
+  try {
+    const res = await api.askAi({ content: description.value });
+    // 请求成功后的操作
+    aiAnswer.value = res.result;
+  } catch (e) {
+    aiAnswer.value = 'AI出现了一点问题，请稍后再试';
+    console.log(e);
+  } finally {
+    // 无论请求成功还是失败都会执行的操作
+    loading.close(); // 关闭加载指示器
+    dialogFormVisible2.value = false;
+    dialogFormVisible3.value = true;
+    description.value = '';
+  }
 };
 
 </script>
@@ -762,7 +788,7 @@ button {
 
 .aiAnswer {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 24px;
+  font-size: 16px;
   color: #007BFF;
   font-weight: 600;
   display: block;

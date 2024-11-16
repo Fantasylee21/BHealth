@@ -3,8 +3,9 @@
     <el-container>
       <el-row>
         <!-- Left Display Area -->
-        <el-col :span="12" class="display-area">
-          <div class="medical-record" ref="displayContent">
+        <el-col :span="12">
+          <div class="display-area" ref="displayContent">
+          <div class="medical-record">
             <h1>计算机学院BHealth医院</h1>
             <div class="document">
               <!-- Name, Gender, Age on the same line -->
@@ -16,7 +17,7 @@
               </div>
               <!-- Horizontal line with spacing -->
               <hr class="divider" />
-              <p><strong>就诊号：</strong>{{ patientInfo.recordNumber }}</p>
+              <p><strong>就诊病号：</strong>{{ patientInfo.recordNumber }}</p>
               <p><strong>就诊时间：</strong>{{ patientInfo.visitTime }}</p>
               <p><strong>联系电话：</strong>{{ patientInfo.phone }}</p>
               <p><strong>家庭住址：</strong>{{ patientInfo.address }}</p>
@@ -36,8 +37,9 @@
               <p><strong>建议：</strong>{{ patientInfo.advice }}</p>
             </div>
             <div class="signature">
-              医师签字：贾连荣 &nbsp;手签：
+              医师签字：{{patientInfo.doctorName}} &nbsp;手签：
             </div>
+          </div>
           </div>
         </el-col>
 
@@ -57,13 +59,12 @@
               <el-input v-model="patientInfo.age" type="number" />
             </el-form-item>
             <el-form-item label="就诊科室">
-              <el-input v-model="patientInfo.department" />
+              <el-select v-model="patientInfo.department">
+                <el-option v-for="item in allDepartment1" :key="item" :label="item" :value="item"></el-option>
+              </el-select>
             </el-form-item>
-            <el-form-item label="就诊号">
+            <el-form-item label="就诊病号">
               <el-input v-model="patientInfo.recordNumber" />
-            </el-form-item>
-            <el-form-item label="就诊时间">
-              <el-input v-model="patientInfo.visitTime" />
             </el-form-item>
             <el-form-item label="联系电话">
               <el-input v-model="patientInfo.phone" />
@@ -100,7 +101,7 @@
                       <el-input v-model="drug.count" placeholder="用量" />
                     </el-col>
                     <el-col :span="4">
-                      <el-icon @click="delDrug(index)" class="drug-action-icon" title="删除药品"><Minus /></el-icon>
+                      <el-icon @click="delDrug()" class="drug-action-icon" title="删除药品"><Minus /></el-icon>
                     </el-col>
                   </el-row>
                 </div>
@@ -110,8 +111,12 @@
             <el-form-item label="建议">
               <el-input v-model="patientInfo.advice" />
             </el-form-item>
+            <el-form-item label="医师签字">
+              <el-input v-model="patientInfo.doctorName" />
+            </el-form-item>
           </el-form>
           <el-button type="primary" @click="exportToPDF" class="pdfButton">导出为 PDF</el-button>
+          <el-button type="info" @click="submit" class="bButton">提交病人病历</el-button>
         </el-col>
       </el-row>
     </el-container>
@@ -119,9 +124,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import html2pdf from 'html2pdf.js';
-import { Minus, Plus} from "@element-plus/icons";
+import {Minus, Plus} from "@element-plus/icons";
+import {useProfileStore} from "@/stores/profile";
+import {ElMessage} from "element-plus";
+import api from "@/api";
 
 interface medicalRecord {
   name: string;
@@ -145,29 +153,36 @@ interface PatientInfo {
   allergyHistory: string;
   diagnosis: string;
   advice: string;
+  doctorName : string;
 }
 
 const patientInfo = ref<PatientInfo>({
-  content: '\'黄葵胶囊每粒装0.43g（相当于饮片2g）共15盒 口服 3次/日 一次5.0粒\',\n' +
-    '    \'叶酸片0.4mg 共1盒 口服 1次/日 一次2.0片\',\n' +
-    '    \'坎地沙坦酯片8mg 共4盒 口服 1次/日 一次8.0mg\'',
+  content: 'dsa',
   takenDrugs: [{ name: '药品1', count: '1' }],
-  name: '蔡志军',
-  gender: '男',
-  age: 45,
-  department: '风湿免疫科',
-  recordNumber: 'M207882405098',
-  visitTime: '2024-05-09 14:21:52',
-  phone: '13920631008',
-  address: '地址',
-  complaint: '腰疼，高血压，叶酸缺乏三年',
-  currentHistory: '1、高血压 2、叶酸缺乏症 3、腰痛',
-  medicalHistory: '既往史',
-  allergyHistory: '过敏史',
-  diagnosis: '1、高血压 2、叶酸缺乏症 3、腰痛',
-  advice: '在用药过程中有任何身体不适，请及时前往实体医院就诊'
+  name: '',
+  gender: '',
+  age: 0,
+  department: '',
+  recordNumber: '',
+  visitTime: '',
+  phone: '',
+  address: '',
+  complaint: '',
+  currentHistory: '',
+  medicalHistory: '',
+  allergyHistory: '',
+  diagnosis: '',
+  advice: '',
+  doctorName: ''
 });
 
+onMounted(() => {
+  patientInfo.value.visitTime = new Date().toLocaleString();
+  const profile = useProfileStore();
+  patientInfo.value.department = profile.category;
+  patientInfo.value.doctorName = profile.username;
+});
+const allDepartment1 = ref(['内科', '外科', '妇产科', '儿科', '皮肤科','耳鼻喉科','口腔科','骨科','神经科','心血管科','肿瘤科','消化科']);
 const displayContent = ref(null);
 
 const exportToPDF = () => {
@@ -185,6 +200,21 @@ const delDrug = () => {
   patientInfo.value.takenDrugs.pop();
 };
 
+const submit = () => {
+  console.log('Submit patient info:', patientInfo.value);
+  putDiagnosis();
+};
+
+const putDiagnosis = async () => {
+  const diagnosis = patientInfo.value;
+  console.log('diagnosis:', diagnosis);
+  try {
+    await api.putDiagnosis({ diagnosis }, patientInfo.value.recordNumber);
+  } catch (e) {
+    ElMessage.error('提交失败');
+  }
+}
+
 </script>
 
 <style scoped>
@@ -197,7 +227,9 @@ const delDrug = () => {
   padding: 20px;
   background-color: #f9f9f9;
   border-right: 1px solid #ddd;
+  min-width: 620px;
 }
+
 .edit-area {
   padding: 20px;
 }
@@ -205,7 +237,7 @@ const delDrug = () => {
 .medical-record {
   margin: 0 auto;
   border: 1px solid #000;
-  padding: 20px;
+  padding: 30px;
   font-family: "SimSun", "宋体", serif;
   line-height: 1.8;
   word-wrap: break-word;
@@ -243,8 +275,13 @@ const delDrug = () => {
 }
 
 .pdfButton {
-  margin-top: 40px;
+  margin-top: 20px;
   margin-left: 50%;
+}
+
+.bButton {
+  margin-top: 10px;
+  margin-left: 49%;
 }
 
 .drugAdd {
@@ -291,12 +328,8 @@ const delDrug = () => {
   cursor: pointer;
   color: #409eff;
   font-size: 18px;
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition: transform 0.5s ease, color 0.3s ease;
 }
 
-
-.add-icon:hover {
-  transform: scale(1.2) rotate(45deg);
-}
 
 </style>

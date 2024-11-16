@@ -37,7 +37,7 @@ export default {
 				if (ret) {
 					ElMessage.success('登录成功')
 					setTimeout(() => {
-						UtilMethods.jump('/staging')
+						UtilMethods.jump('/news')
 					}, 500)
 				}
 			} else ElMessage.error('注册失败')
@@ -53,6 +53,7 @@ export default {
 			const user = await api.post(`users/login/`, params)
 			sessionStorage.setItem('token', user.data.token)
 			sessionStorage.setItem('type', user.data.type)
+			await this.getSelfInfo();
 			return user.data
 		} catch (error: any) {
 			console.log(`output->error`, error)
@@ -269,6 +270,7 @@ export default {
 					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
 				}
 			});
+			sessionStorage.setItem('is_superuser', res.data.is_superuser)
 			profile.updateProfile(res.data);
 			return res.data;
 		} catch (error: any) {
@@ -418,8 +420,38 @@ export default {
 			return res.data;
 		} catch (error: any) {
 			console.log(`output->error`, error)
+			ElMessage.error("没有发现该病人的诊断单")
+		}
+	},
+
+	putDiagnosis : async function(params : {diagnosis : string}, patient_id : string) {
+		try {
+			const res = await api.put(`/users/diagnosis/${patient_id}/`, params, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			ElMessage.success('上传成功');
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
 			ElMessage.error(error.response.data.error)
 		}
+	},
 
+	getDiagnosis : async function(params : {diagnosis_id : string}) {
+		try {
+			const res = await api.get(`/users/diagnosis/${params.diagnosis_id}/`, {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+				}
+			});
+			return res.data;
+		} catch (error: any) {
+			console.log(`output->error`, error)
+			ElMessage.error("没有发现该病人的诊断单")
+		}
 	}
 }

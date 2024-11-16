@@ -227,7 +227,7 @@ class DoctorView(GenericViewSet):
             return Response({"error": "未进行预约"}, status=status.HTTP_400_BAD_REQUEST)
         # 删除这条预约
         app.delete()
-        diagnosis = Diagnosis.objects.create(doctor=doctor, patient=patient, content=request.data.get('content'))
+        diagnosis = Diagnosis.objects.create(doctor=doctor, patient=patient, content=request.data.get('diagnosis'))
         return Response(status=status.HTTP_201_CREATED)
 
     def get_special_doctors(self, request, *args, **kwargs):

@@ -4,6 +4,7 @@ import DrugsGraph from "@/components/DrugsInfo/DrugsGraph.vue";
 import {computed, onMounted, reactive, ref} from "vue";
 import api from "@/api";
 import {ElMessage} from "element-plus";
+import router from "@/router";
 
 const drugs = ref([]);
 const getAllDrugs = async () => {
@@ -132,6 +133,10 @@ const jumpToPage = () => {
     inputPage.value = currentPage.value;
   }
 };
+const getPatient = async () => {
+  dialogFormVisible3.value = false;
+  router.push('/diagnosis/' + patientId.value);
+}
 
 </script>
 
@@ -217,7 +222,7 @@ const jumpToPage = () => {
     </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button type="primary" @click="useDrug">
+        <el-button type="primary" @click="getPatient">
           确认
         </el-button>
         <el-button @click="dialogFormVisible3 = false">取消</el-button>
