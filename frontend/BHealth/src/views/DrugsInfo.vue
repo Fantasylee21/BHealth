@@ -138,9 +138,9 @@ const jumpToPage = () => {
 <template>
   <div class="drugsData">
     <h1 class="drugsDataTitle">医院药品库存情况</h1>
-    <DrugsGraph> </DrugsGraph>
   </div>
   <div class="drugsInfo">
+  <DrugsGraph> </DrugsGraph>
   <el-dialog v-model="dialogFormVisible" title="上传新药品" width="500px" >
     <el-form :model="form">
       <el-form-item label="药品名称" :label-width="formLabelWidth">
