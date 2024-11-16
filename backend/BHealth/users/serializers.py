@@ -61,17 +61,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        # fields = '__all__'
-        # read_only_fields = ['create_time', 'update_time', ]
         exclude = ['password', 'is_delete', 'is_staff', 'groups', 'user_permissions', 'last_login', ]
 
-    # 结果按照时间从近到远排序
     def get_appointment(self, obj):
-        appointment = Appointment.objects.filter(user=obj).order_by('-create_time')
-        serializer = AppointmentSerializer(appointment, many=True)
-        return serializer.data
+        appointment_ids = [app.id for app in Appointment.objects.filter(user=obj).order_by('-create_time')]
+        return appointment_ids
 
     def get_diagnosis(self, obj):
-        diagnosis = Diagnosis.objects.filter(patient=obj).order_by('-create_time')
-        serializer = DiagnosisSerializer(diagnosis, many=True)
-        return serializer.data
+        diagnosis_ids = [diag.id for diag in Diagnosis.objects.filter(patient=obj).order_by('-create_time')]
+        return diagnosis_ids
