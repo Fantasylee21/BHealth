@@ -77,12 +77,25 @@ WSGI_APPLICATION = 'BHealth.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'h_db22371432',
+        'USER': 'u22371432',
+        'PASSWORD': 'Aa689944',
+        'HOST': '120.46.3.97',
+        'PORT': '3306',
     }
 }
 
+# 'default': {
+#     'ENGINE': 'django.db.backends.mysql',  # 使用mysql作为数据库引擎
+#     'NAME': 'BHealth',         # 数据库名称
+#     'USER': 'user01',         # 数据库用户名
+#     'PASSWORD': 'user01', # 数据库密码
+#     'HOST': '127.0.0.1',         # 数据库主机地址，如果是华为云数据库，则是云数据库的地址
+#     'PORT': '3306',         # 数据库端口，MySQL默认为3306
+# }
 # settings.py
 
 CACHES = {
