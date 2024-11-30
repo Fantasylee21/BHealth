@@ -7,7 +7,7 @@
                     <input
                             type="text"
                             class="form_input"
-                            placeholder="用户名 (3-16位字母、数字或下划线)"
+                            placeholder="用户名"
                             v-model="signupForm.username"
                     />
                     <input
@@ -87,9 +87,9 @@
                         id="switch-c2"
                         :class="{ 'is-hidden': !isSignInVisible }"
                 >
-                    <h2 class="switch_title title" style="letter-spacing: 0">Hello Markers！</h2>
+                    <h2 class="switch_title title" style="letter-spacing: 0">BHealth</h2>
                     <p class="switch_description description">
-                        去注册一个账号，成为尊贵的粉丝会员，让我们踏入奇妙的旅途！
+                        去注册一个账号，感受BHealth，祝您早日康复
                     </p>
                     <button class="switch_button button switch-btn" @click="changeForm">
                         SIGN IN
@@ -147,14 +147,14 @@ const getSelfInfo = async () => {
 }
 
 const validateSignupForm = () => {
-    const usernamePattern = /^[a-zA-Z0-9_]{3,16}$/
+    const usernamePattern = /^[a-zA-Z0-9_]{3,50}$/
     const passwordPattern = /^[a-zA-Z0-9!@#$%^&*]{6,20}$/
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
 
-    if (!usernamePattern.test(signupForm.value.username)) {
-        ElMessage.error('用户名格式不正确')
-        return false
-    }
+    // if (!usernamePattern.test(signupForm.value.username)) {
+    //     ElMessage.error('用户名格式不正确')
+    //     return false
+    // }
     if (!passwordPattern.test(signupForm.value.password)) {
         ElMessage.error('密码格式不正确')
         return false

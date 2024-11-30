@@ -49,7 +49,7 @@
             <el-form-item label="姓名">
               <el-input v-model="patientInfo.name" />
             </el-form-item>
-            <el-form-item label="性别">
+            <el-form-item label="性别" >
               <el-select v-model="patientInfo.gender">
                 <el-option label="男" value="男"></el-option>
                 <el-option label="女" value="女"></el-option>
@@ -157,7 +157,7 @@ interface PatientInfo {
 }
 
 const patientInfo = ref<PatientInfo>({
-  content: 'dsa',
+  content: '',
   takenDrugs: [{ name: '药品1', count: '1' }],
   name: '',
   gender: '',

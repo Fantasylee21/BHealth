@@ -66,6 +66,7 @@ const submitAdd = async () => {
 
   await api.addDrug(form);
   dialogFormVisible.value = false;
+  await getAllDrugs();
 }
 const clickDrugId = ref(0);
 const clickDrugName = ref('');
@@ -105,7 +106,9 @@ const currentPage = ref(1);
 const perPage = ref(5);
 const inputPage = ref(1);
 
-const totalPages = computed(() => Math.ceil(drugs.value.length / perPage.value));
+const totalPages = computed(() => {
+  return drugs.value.length > 0 ? Math.ceil(drugs.value.length / perPage.value) : 1;
+});
 
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * perPage.value;

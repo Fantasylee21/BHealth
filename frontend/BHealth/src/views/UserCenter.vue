@@ -1,7 +1,12 @@
 <template>
 <div class="container">
-  <div id="logo"><h1 class="logo">BHealth</h1>
-    <div class="CTA">
+    <div v-if="isOverlayVisible" class="overlay" @click="closeOverlay">
+      <div class="overlay-content">
+        <img src="@/assets/money.jpg" alt="Overlay Image" />
+      </div>
+    </div>
+   <div id="logo"><h1 class="logo">BHealth</h1>
+    <div class="CTA" @click="outPay">
       <h1>Get ￥10</h1>
     </div>
   </div>
@@ -47,17 +52,17 @@
       <UserCard />
     </div>
 
-    <div class="subscription" :class="{ 'noshow': activeTab !== 'subscription' }">
-      <h1>工作信息</h1>
-      <h2>科室</h2>
-      <p>{{category}}</p>
-      <h2>职称</h2>
-      <p>{{title}}</p>
-      <h2>毕业院校</h2>
-      <p>{{school}}</p>
-      <h2>工作时间</h2>
-      <p>{{work_time}}</p>
-    </div>
+  <div class="subscription" :class="{ 'noshow': activeTab !== 'subscription' }">
+    <h1 >工作信息</h1>
+    <h2 v-if="type === '医生'">科室</h2>
+    <p v-if="type === '医生'">{{ category }}</p>
+    <h2 v-if="type === '医生'">职称</h2>
+    <p v-if="type === '医生'">{{ title }}</p>
+    <h2 v-if="type === '医生'">毕业院校</h2>
+    <p v-if="type === '医生'" >{{ school }}</p>
+    <h2 v-if="type !== '患者'" >工作时间</h2>
+    <p v-if="type !== '患者'" >{{ work_time }}</p>
+  </div>
 
     <div class="privacy" :class="{ 'noshow': activeTab !== 'privacy' }">
       <h1>头像</h1>
@@ -143,6 +148,9 @@ if (profile.is_superuser) {
     type = '取药师';
   }
 }
+
+
+
 const introduction = profile.introduction;
 const avatarSrc = ref<string | null >(profile.avatar);
 
@@ -207,6 +215,16 @@ const updateProfile = async () => {
     ElMessage.error('信息更新失败');
   }
 }
+
+const isOverlayVisible = ref(false); // 用于控制遮罩层的显示
+
+const outPay = () => {
+  isOverlayVisible.value = true;
+};
+
+const closeOverlay = () => {
+  isOverlayVisible.value = false;
+};
 
 </script>
 
@@ -418,5 +436,27 @@ footer {
 .save {
   margin-top: 20px;
   margin-left: 340px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* 背景变暗 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* 图片内容容器 */
+.overlay-content img {
+  max-width: 50%;
+  max-height: 60%;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-left: 30%;
 }
 </style>
