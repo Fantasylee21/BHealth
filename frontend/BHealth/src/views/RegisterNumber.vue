@@ -230,7 +230,7 @@
     <div class="ai-img">
       <el-image
         style="margin-top: 20px"
-        src="src/assets/ai.png"
+        src="@/assets/ai.png"
         fit="cover"
       />
     </div>
