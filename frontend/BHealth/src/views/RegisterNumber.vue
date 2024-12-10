@@ -228,11 +228,7 @@
   <div class="ai" @click="openAi">
     <p class="aip">AI</p>
     <div class="ai-img">
-      <el-image
-        style="margin-top: 20px"
-        src="@/assets/ai.png"
-        fit="cover"
-      />
+      <img class="aiAsk" src="@/assets/aiAsk.jpg" alt="Overlay Image" />
     </div>
   </div>
 </template>
@@ -830,6 +826,13 @@ button {
   border-top-right-radius: 30px; /* 顶部圆角 */
   text-align: center;
 
+}
+
+
+.aiAsk {
+  margin-top: 20px;
+  height: 100%;
+  width: 100%;
 }
 
 </style>
