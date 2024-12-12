@@ -48,7 +48,7 @@
         </thead>
         <tbody>
           <tr v-for="(row, index) in paginatedData" :key="index">
-            <td>{{ index + 1 }}</td>
+            <td>{{ index + 1 + currentPage * 10 - 10 }}</td>
             <td>{{ row.username }}</td>
             <td>{{ row.education }}</td>
             <td>{{ row.work_time }}</td>
@@ -95,7 +95,7 @@
           v-model="form.startTime"
           start="08:30"
           step="00:30"
-          end="23:30"
+          end="22:30"
           placeholder="请选择放号时间段"
         />
       </el-form-item>
@@ -125,7 +125,7 @@
           v-model="registerData.doctorStartTime"
           start="08:30"
           step="00:30"
-          end="23:30"
+          end="22:30"
           placeholder="请选择预约时间段"
         />
       </el-form-item>
@@ -271,15 +271,18 @@ const canRegister = ref(false);
 const description = ref('');
 const formLabelWidth = '140px'
 // 计算总页数
-const totalPages = computed(() => Math.ceil(tableData.value.length / perPage.value));
+const totalPages = computed(() => Math.ceil(count.value / perPage.value));
+const count = ref(10)
 
 const getDoctor = async (page : number) => {
   try {
     const res = await api.getAllDoctor({page});
+    count.value = res.count;
     tableData.value = res.results;
     tableData.value.forEach((item) => {
       item.work_time = formatTime(item.work_time);
     });
+    console.log(tableData);
   } catch (e) {
     console.log(e);
   }
@@ -309,6 +312,7 @@ const searchDoctor = async (name : string, category: string, content: string) =>
     tableData.value.forEach((item) => {
       item.work_time = formatTime(item.work_time);
     });
+    count.value = tableData.value.length;
   } catch (e) {
     console.log(e);
   }
@@ -336,7 +340,7 @@ const registerData = reactive({
 })
 // 计算当前页的数据
 const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value;
+  const start = 0;
   const end = start + perPage.value;
   return tableData.value.slice(start, end);
 });
@@ -346,6 +350,7 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
+  console.log(currentPage.value);
   getDoctor(currentPage.value);
 };
 
@@ -568,7 +573,6 @@ const aiask = async () => {
   // 10s后自动关闭加载指示器
   setTimeout(() => {
     loading.close();
-    aiAnswer.value = 'AI出现了一点问题，请稍后再试';
   }, 10000);
   try {
     const res = await api.askAi({ content: description.value });
