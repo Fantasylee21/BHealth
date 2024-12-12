@@ -447,9 +447,9 @@ const submitInfo = () => {
     const day = date.getDate();
     const work_time = `${year}-${month}-${day}`;
     console.log('提交', work_time);
-    changeUserInfo();
-
-    getDoctor(currentPage.value);
+    changeUserInfo().then(() => {
+      getDoctor(currentPage.value);
+    });
   }
 };
 
