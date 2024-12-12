@@ -15,7 +15,7 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 import {ElLoading} from "element-plus";
 
 const editorRef = shallowRef();
-const valueHtml = ref('<p>hello <strong>hello world</strong></p>');
+const valueHtml = ref('<p>发布一则BHealth的新闻吧！！！</p>');
 const toolbarConfig = {};
 const editorConfig = ref({ placeholder: '请输入内容...', MENU_CONF: {} });
 

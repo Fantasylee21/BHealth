@@ -53,7 +53,7 @@
     <!-- 全部医生：仅医生可见 -->
     <el-menu-item
       index="/registerNumber"
-      v-if="hasAccess(['doctor', 'patient', 'admin'])"
+      v-if="hasAccess(['patient', 'admin'])"
     >
       <el-icon><School /></el-icon>
       <template #title>全部医生</template>

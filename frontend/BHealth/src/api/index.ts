@@ -138,7 +138,7 @@ export default {
 			}
 		} catch (error) {
 			console.log(`output->error`, error);
-			ElMessage.error(error.response?.data?.error || '上传过程中出错');
+			ElMessage.error('上传过程中出错');
 		}
 	},
 

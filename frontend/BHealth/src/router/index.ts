@@ -1,6 +1,5 @@
 import {createRouter, createWebHistory, type RouteRecordRaw} from 'vue-router'
 
-const MainStaging = () => import('@/views/MainStaging.vue')
 const NewsBoard = () => import('@/views/NewsBoard.vue')
 const RegisterNumber = () => import('@/views/RegisterNumber.vue')
 const LoginRegister = () => import('@/views/LoginRegister.vue')
@@ -20,12 +19,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/loginRegister',
     name: 'LoginRegister',
     component: LoginRegister,
-  },
-  {
-    path: '/staging',
-    name: 'MainStaging',
-    component: MainStaging,
-    meta: { requiresAuth: true }, // 需要登录
   },
   {
     path: '/news',
