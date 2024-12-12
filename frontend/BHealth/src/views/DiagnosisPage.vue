@@ -39,7 +39,7 @@
             </div>
           </div>
           </div>
-      <el-button type="primary" @click="exportToPDF" class="pdfButton">导出为 PDF</el-button>
+<!--      <el-button type="primary" @click="exportToPDF" class="pdfButton">导出为 PDF</el-button>-->
       </el-tab-pane>
       <el-tab-pane v-if="diagnosis.length === 0" label="0">
         <div class="display-area" ref="displayContent">
